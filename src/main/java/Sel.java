@@ -17,7 +17,7 @@ public class Sel {
 
         Scanner scanner = new Scanner(System.in);
 
-        List<String> data = new ArrayList<>();
+        List<Task> task = new ArrayList<Task>();
 
         while (true) {
 
@@ -30,13 +30,29 @@ public class Sel {
 
             if (command.equals("list")) {
                 System.out.println(line_break);
-                for (int i = 0; i < data.size(); i++) {
-                    System.out.println((i + 1) + ". " + data.get(i));
+                for (int i = 0; i < task.size(); i++) {
+                    Task t = task.get(i);
+                    System.out.println((i + 1) + ".[" + t.getStatusIcon() + "] " + t.getDescription());
                 }
                 System.out.println(line_break);
                 continue;
             }
-            data.add(command);
+
+            if (command.startsWith("mark ")) {
+                int index = Integer.parseInt(command.substring(5)) - 1;
+                task.get(index).mark();
+                System.out.println(line_break + "\nMarked task as done: \n" + "[" + task.get(index).getStatusIcon() + "] " + task.get(index).getDescription() + "\n" + line_break);
+                continue;
+            }
+
+            if (command.startsWith("unmark ")) {
+                int index = Integer.parseInt(command.substring(7)) - 1;
+                task.get(index).unmark();
+                System.out.println(line_break + "\nUnmarked task as done: \n" + "[" + task.get(index).getStatusIcon() + "] " + task.get(index).getDescription() + "\n" + line_break);
+                continue;
+            }
+
+            task.add(new Task(command));
             System.out.println(line_break + "\nadded: " + command + "\n" + line_break);
         }
         scanner.close();
