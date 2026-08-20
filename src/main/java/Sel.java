@@ -2,6 +2,18 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 
+enum CommandType {
+    BYE,
+    LIST,
+    MARK,
+    UNMARK,
+    DELETE,
+    TODO,
+    DEADLINE,
+    EVENT,
+    UNKNOWN
+}
+
 public class Sel {
     public static void main(String[] args) {
         String banner = " ____  _____ _     \n"
@@ -25,15 +37,47 @@ public class Sel {
             }
             
             String command = scanner.nextLine();
+
+            String commandWord = command.trim().split("\\s+", 2)[0];
+            CommandType commandType;
+
+            switch (commandWord) {
+            case "bye":
+                commandType = CommandType.BYE;
+                break;
+            case "list":
+                commandType = CommandType.LIST;
+                break;
+            case "mark":
+                commandType = CommandType.MARK;
+                break;
+            case "unmark":
+                commandType = CommandType.UNMARK;
+                break;
+            case "delete":
+                commandType = CommandType.DELETE;
+                break;
+            case "todo":
+                commandType = CommandType.TODO;
+                break;
+            case "deadline":
+                commandType = CommandType.DEADLINE;
+                break;
+            case "event":
+                commandType = CommandType.EVENT;
+                break;
+            default:
+                commandType = CommandType.UNKNOWN;
+            }
             
-            if (command.equals("bye")) {
+            if (commandType == CommandType.BYE) {
                 System.out.println(line_break 
                     + "\nBye see ya later alligator.\n" 
                     + line_break);
                 break;
             }
 
-            else if (command.equals("list")) {
+            else if (commandType == CommandType.LIST) {
                 System.out.println(line_break 
                     + "\nBro why do you want to see the list??? anyway here it is:");
                 
@@ -46,7 +90,7 @@ public class Sel {
                 continue;
             }
 
-            else if (command.equals("mark") || command.startsWith("mark ")) {
+            else if (commandType == CommandType.MARK) {
                 
                 if (command.equals("mark")) {
                     System.out.println(
@@ -78,7 +122,7 @@ public class Sel {
                 continue;
             }
 
-            else if (command.equals("unmark") || command.startsWith("unmark ")) {
+            else if (commandType == CommandType.UNMARK) {
 
                 if (command.equals("unmark")) {
                     System.out.println(
@@ -111,7 +155,7 @@ public class Sel {
                 continue;
             }
 
-            else if (command.equals("delete") || command.startsWith("delete ")) {
+            else if (commandType == CommandType.DELETE) {
 
                 if (command.equals("delete")) {
                     System.out.println(new SelException("Bro, you need to tell me which task to delete :("));
@@ -145,7 +189,7 @@ public class Sel {
                 continue;
             }
 
-            else if (command.equals("todo") || command.startsWith("todo ")) {
+            else if (commandType == CommandType.TODO) {
 
                 if (command.equals("todo")) {
                     System.out.println(
@@ -172,7 +216,7 @@ public class Sel {
                     + line_break);
             }
 
-            else if (command.equals("deadline") || command.startsWith("deadline ")) {
+            else if (commandType == CommandType.DEADLINE) {
 
                 if (command.equals("deadline")) {
                     System.out.println(
@@ -215,7 +259,7 @@ public class Sel {
                     + line_break);
             }
 
-             else if (command.equals("event") || command.startsWith("event ")) {
+             else if (commandType == CommandType.EVENT) {
 
                 if (command.equals("event")) {
                     System.out.println(
