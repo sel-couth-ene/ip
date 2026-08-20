@@ -11,7 +11,7 @@ public class Task {
         return (isDone ? "X" : " ");
     }
 
-    public String getDescription() {
+    public String toString() {
         return this.description;
     }
 
