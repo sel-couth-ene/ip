@@ -35,7 +35,7 @@ public class Sel {
 
             else if (command.equals("list")) {
                 System.out.println(line_break 
-                    + "\nBro why do you want to see the list???");
+                    + "\nBro why do you want to see the list??? anyway here it is:");
                 
                 for (int i = 0; i < task.size(); i++) {
                     Task t = task.get(i);
@@ -103,6 +103,40 @@ public class Sel {
                         + "\n"
                         + line_break
                     );
+
+                } catch (NumberFormatException e) {
+                    System.out.println(
+                        new SelException("Bro, give me a valid task number :("));
+                }
+                continue;
+            }
+
+            else if (command.equals("delete") || command.startsWith("delete ")) {
+
+                if (command.equals("delete")) {
+                    System.out.println(new SelException("Bro, you need to tell me which task to delete :("));
+                    continue;
+                }
+
+                try {
+                    int index = Integer.parseInt(command.substring(7).trim()) - 1;
+
+                    if (index < 0 || index >= task.size()) {
+                        System.out.println(
+                            new SelException("Bro, that task doesn't exist :("));
+                        continue;
+                    }
+
+                    Task deletedTask = task.get(index);
+                    task.remove(index);
+
+                    System.out.println(line_break
+                        + "\nYay! You have fewer tasks now! \n"
+                        + deletedTask.toString()
+                        + "\nNow "
+                        + task.size()
+                        + " task(s) on your list bruh...\n"
+                        + line_break);
 
                 } catch (NumberFormatException e) {
                     System.out.println(
