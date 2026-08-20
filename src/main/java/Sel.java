@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Sel {
     public static void main(String[] args) {
@@ -15,16 +17,27 @@ public class Sel {
 
         Scanner scanner = new Scanner(System.in);
 
+        List<String> data = new ArrayList<>();
+
         while (true) {
+
             String command = scanner.nextLine();
+            
             if (command.equals("bye")) {
-                System.out.println(line_break);
-                System.out.println("Bye see ya later alligator.");
-                System.out.println(line_break);
+                System.out.println(line_break + "\nBye see ya later alligator.\n" + line_break);
                 break;
             }
-            System.out.println(command);
-            System.out.println(line_break);
+
+            if (command.equals("list")) {
+                System.out.println(line_break);
+                for (int i = 0; i < data.size(); i++) {
+                    System.out.println((i + 1) + ". " + data.get(i));
+                }
+                System.out.println(line_break);
+                continue;
+            }
+            data.add(command);
+            System.out.println(line_break + "\nadded: " + command + "\n" + line_break);
         }
         scanner.close();
     }
