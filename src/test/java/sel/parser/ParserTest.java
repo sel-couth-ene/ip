@@ -7,37 +7,37 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
-import sel.command.CommandType;
+import sel.command.Commandtype;
 import sel.exception.SelException;
 
 public class ParserTest {
 
     @Test
-    public void parseCommandType_recognisesAllKnownCommands() {
-        assertEquals(CommandType.BYE, Parser.parseCommandType("bye"));
-        assertEquals(CommandType.LIST, Parser.parseCommandType("list"));
-        assertEquals(CommandType.MARK, Parser.parseCommandType("mark 1"));
-        assertEquals(CommandType.UNMARK, Parser.parseCommandType("unmark 1"));
-        assertEquals(CommandType.DELETE, Parser.parseCommandType("delete 1"));
-        assertEquals(CommandType.TODO, Parser.parseCommandType("todo read book"));
-        assertEquals(CommandType.DEADLINE, Parser.parseCommandType("deadline return book /by 2019-12-02 1800"));
-        assertEquals(CommandType.EVENT, Parser.parseCommandType("event meeting /from 2019-12-02 1400 /to 1600"));
+    public void parseCommandtype_recognisesAllKnownCommands() {
+        assertEquals(Commandtype.BYE, Parser.parseCommandType("bye"));
+        assertEquals(Commandtype.LIST, Parser.parseCommandType("list"));
+        assertEquals(Commandtype.MARK, Parser.parseCommandType("mark 1"));
+        assertEquals(Commandtype.UNMARK, Parser.parseCommandType("unmark 1"));
+        assertEquals(Commandtype.DELETE, Parser.parseCommandType("delete 1"));
+        assertEquals(Commandtype.TODO, Parser.parseCommandType("todo read book"));
+        assertEquals(Commandtype.DEADLINE, Parser.parseCommandType("deadline return book /by 2019-12-02 1800"));
+        assertEquals(Commandtype.EVENT, Parser.parseCommandType("event meeting /from 2019-12-02 1400 /to 1600"));
     }
 
     @Test
     public void parseCommandType_unknownWord_returnsUnknown() {
-        assertEquals(CommandType.UNKNOWN, Parser.parseCommandType("frobnicate"));
+        assertEquals(Commandtype.UNKNOWN, Parser.parseCommandType("frobnicate"));
     }
 
     @Test
     public void parseCommandType_isCaseSensitiveAndOnlyLooksAtFirstWord() {
-        assertEquals(CommandType.UNKNOWN, Parser.parseCommandType("BYE"));
-        assertEquals(CommandType.LIST, Parser.parseCommandType("list please"));
+        assertEquals(Commandtype.UNKNOWN, Parser.parseCommandType("BYE"));
+        assertEquals(Commandtype.LIST, Parser.parseCommandType("list please"));
     }
 
     @Test
     public void parseCommandType_leadingWhitespace_stillRecognised() {
-        assertEquals(CommandType.BYE, Parser.parseCommandType("   bye"));
+        assertEquals(Commandtype.BYE, Parser.parseCommandType("   bye"));
     }
 
     @Test
