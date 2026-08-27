@@ -1,7 +1,6 @@
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -164,7 +163,7 @@ public class Sel {
             }
             Files.write(DATA_FILE, lines);
         } catch (IOException e) {
-            System.out.println("WARNING: could not save tasks to " + DATA_FILE + ".");
+            System.out.println("WARNING: failed to save tasks to " + DATA_FILE + ".");
         }
     }
 
