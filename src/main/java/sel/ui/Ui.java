@@ -154,6 +154,19 @@ public class Ui {
             + LINE_BREAK);
     }
 
+    public void showMatchingTasks(List<Task> matches) {
+        System.out.println(LINE_BREAK);
+        if (matches.isEmpty()) {
+            System.out.println("Bro, nothing in your list matches that keyword :(");
+        } else {
+            System.out.println("Here are the matching tasks in your list:");
+            for (int i = 0; i < matches.size(); i++) {
+                System.out.println((i + 1) + "." + matches.get(i).toString());
+            }
+        }
+        System.out.println(LINE_BREAK);
+    }
+
     /** Releases the input resource. */
     public void close() {
         scanner.close();
