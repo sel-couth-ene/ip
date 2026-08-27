@@ -1,0 +1,46 @@
+package sel.task;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.time.LocalDateTime;
+
+import org.junit.jupiter.api.Test;
+
+public class DeadlineTest {
+
+    @Test
+    public void getDDL_returnsExactValuePassedIn() {
+        LocalDateTime ddl = LocalDateTime.of(2019, 12, 2, 18, 0);
+        Deadline deadline = new Deadline("return book", ddl);
+        assertEquals(ddl, deadline.getDDL());
+    }
+
+    @Test
+    public void toString_notDone_formatsDateCorrectly() {
+        LocalDateTime ddl = LocalDateTime.of(2019, 12, 2, 18, 0);
+        Deadline deadline = new Deadline("return book", ddl);
+        assertEquals("[D][ ] return book(by:Dec 2 2019, 6:00PM)", deadline.toString());
+    }
+
+    @Test
+    public void toString_marked_showsXInStatusBox() {
+        LocalDateTime ddl = LocalDateTime.of(2019, 12, 2, 18, 0);
+        Deadline deadline = new Deadline("return book", ddl);
+        deadline.mark();
+        assertEquals("[D][X] return book(by:Dec 2 2019, 6:00PM)", deadline.toString());
+    }
+
+    @Test
+    public void toString_morningTime_usesAmSuffix() {
+        LocalDateTime ddl = LocalDateTime.of(2019, 12, 2, 9, 30);
+        Deadline deadline = new Deadline("submit form", ddl);
+        assertEquals("[D][ ] submit form(by:Dec 2 2019, 9:30AM)", deadline.toString());
+    }
+
+    @Test
+    public void toString_midnight_formatsAsTwelveAm() {
+        LocalDateTime ddl = LocalDateTime.of(2019, 12, 2, 0, 0);
+        Deadline deadline = new Deadline("renew passport", ddl);
+        assertEquals("[D][ ] renew passport(by:Dec 2 2019, 12:00AM)", deadline.toString());
+    }
+}
