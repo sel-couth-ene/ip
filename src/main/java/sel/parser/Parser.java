@@ -1,16 +1,29 @@
 package sel.parser;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+import sel.command.Commandtype;
 import sel.exception.SelException;
 
-import sel.command.Commandtype;
-
+/**
+ * Deals with making sense of the user command: identifying the command
+ * type and extracting the arguments it needs.
+ */
 public class Parser {
+    // Format expected when the user types a date/time on the command line,
+    // e.g. "2019-12-02 1800"
     private static final DateTimeFormatter INPUT_FORMAT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
 
+    /**
+     * Identifies which command the user typed, based on its first word.
+     *
+     * @param fullCommand the raw command line typed by the user.
+     * @return the matching {@link Commandtype}, or {@code UNKNOWN} if the
+     *     first word does not match any known command.
+     */
     public static Commandtype parseCommandType(String fullCommand) {
         String commandWord = fullCommand.trim().split("\\s+", 2)[0];
 
@@ -36,6 +49,18 @@ public class Parser {
         }
     }
 
+    /**
+     * Extracts the (0-based) task index from a "mark"/"unmark"/"delete"
+     * style command, e.g. {@code "mark 3"} becomes {@code 2}.
+     *
+     * @param fullCommand the raw command line typed by the user.
+     * @param commandWord the command word to strip off (e.g. {@code "mark"}).
+     * @param missingArgMessage message to use if no index was given at all.
+     * @param invalidNumberMessage message to use if the given index is not
+     *     a valid number.
+     * @return the zero-based task index.
+     * @throws SelException if the index is missing or not a valid number.
+     */
     public static int parseIndex(String fullCommand, String commandWord,
             String missingArgMessage, String invalidNumberMessage) throws SelException {
         if (fullCommand.equals(commandWord)) {
@@ -49,6 +74,16 @@ public class Parser {
         }
     }
 
+    /**
+     * Extracts a single free-text argument from a command, e.g.
+     * {@code "todo read book"} becomes {@code "read book"}.
+     *
+     * @param fullCommand the raw command line typed by the user.
+     * @param commandWord the command word to strip off (e.g. {@code "todo"}).
+     * @param errorMessage message to use if no argument was given.
+     * @return the trimmed argument text.
+     * @throws SelException if the argument is missing or blank.
+     */
     public static String parseSimpleArgument(String fullCommand, String commandWord,
             String errorMessage) throws SelException {
         if (fullCommand.equals(commandWord)) {
@@ -62,6 +97,15 @@ public class Parser {
         return argument;
     }
 
+    /**
+     * Extracts the description and deadline from a
+     * {@code "deadline ... /by ..."} command.
+     *
+     * @param fullCommand the raw command line typed by the user.
+     * @return a two-element array of {@code {description, deadline}}.
+     * @throws SelException if the {@code /by} marker, description, or
+     *     deadline text is missing.
+     */
     public static String[] parseDeadlineArgs(String fullCommand) throws SelException {
         if (fullCommand.equals("deadline")) {
             throw new SelException("Bro, you need to tell me what's the task :(");
@@ -85,6 +129,15 @@ public class Parser {
         return new String[] {description, ddl};
     }
 
+    /**
+     * Extracts the description, start time, and end time from an
+     * {@code "event ... /from ... /to ..."} command.
+     *
+     * @param fullCommand the raw command line typed by the user.
+     * @return a three-element array of {@code {description, from, to}}.
+     * @throws SelException if the {@code /from}/{@code /to} markers,
+     *     description, start time, or end time is missing.
+     */
     public static String[] parseEventArgs(String fullCommand) throws SelException {
         if (fullCommand.equals("event")) {
             throw new SelException("Bro, you need to tell me what's the event :(");
@@ -117,6 +170,15 @@ public class Parser {
         return new String[] {description, from, to};
     }
 
+    /**
+     * Parses a user-typed date/time string (e.g. {@code "2019-12-02 1800"})
+     * into a {@link LocalDateTime}.
+     *
+     * @param input the raw date/time text typed by the user.
+     * @return the parsed date/time.
+     * @throws SelException if the text does not match the expected
+     *     {@code yyyy-MM-dd HHmm} format.
+     */
     public static LocalDateTime parseDateTime(String input) throws SelException {
         try {
             return LocalDateTime.parse(input.trim(), INPUT_FORMAT);
