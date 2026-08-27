@@ -1,12 +1,6 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.gradleup.shadow' version '9.5.1'
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
 }
 
 repositories {
@@ -14,43 +8,27 @@ repositories {
 }
 
 dependencies {
-    String jUnitVersion = '5.14.4'
-
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
-
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.4'
-}
-
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events 'passed', 'skipped', 'failed'
-
-        showExceptions = true
-        exceptionFormat = 'full'
-        showCauses = true
-        showStackTraces = true
-        showStandardStreams = false
-    }
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.0'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.0'
 }
 
 application {
     mainClass = 'sel.Sel'
 }
 
-jar {
-    // A lean JAR file (i.e., without the dependencies packaged inside) is not needed.
-    enabled = false
-    // Rename its output anyway; Gradle forbids it clashing with the shadowJar output file, even for a disabled task.
-    archiveClassifier = 'without-dependencies'
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
-shadowJar {
-    archiveFileName = 'duke.jar'
-}
-
-run {
-    standardInput = System.in
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showExceptions true
+        exceptionFormat "full"
+        showCauses true
+        showStackTraces true
+        showStandardStreams = false
+    }
 }
