@@ -1,13 +1,24 @@
-public class Deadline extends Task {
-    protected String ddl;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
-    public Deadline(String description, String ddl) {
+public class Deadline extends Task {
+    private static final DateTimeFormatter display_format = 
+        DateTimeFormatter.ofPattern("MMM d yyy, h:mma", Locale.ENGLISH);
+    
+    protected LocalDateTime ddl;
+
+    public Deadline(String description, LocalDateTime ddl) {
         super(description);
         this.ddl = ddl;
     }
 
+    public LocalDateTime getDDL() {
+        return this.ddl;
+    }
+
     @Override
     public String toString() {
-        return "[D][" + this.getStatusIcon() + "] " + this.description + "(by:" + this.ddl + ")";
+        return "[D][" + this.getStatusIcon() + "] " + this.description + "(by:" + this.ddl.format(display_format) + ")";
     }
 }
