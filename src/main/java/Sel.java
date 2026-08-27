@@ -2,6 +2,11 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 enum CommandType {
     BYE,
     LIST,
@@ -15,6 +20,154 @@ enum CommandType {
 }
 
 public class Sel {
+    private static final Path DATA_FILE = Paths.get("data", "sel.txt");
+
+    private static List<Task> loadTasks() {
+        List<Task> tasks = new ArrayList<Task>();
+
+        try {
+            Path parent = DATA_FILE.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+
+            if (!Files.exists(DATA_FILE)) {
+                Files.createFile(DATA_FILE);
+                return tasks;
+            }
+
+            List<String> lines = Files.readAllLines(DATA_FILE);
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                try {
+                    Task loadedTask = parseTask(line);
+                    tasks.add(loadedTask);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("WARNING: skipped corrupted data on line " + (i + 1) + ".");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("WARNING: failed to load tasks from " + DATA_FILE + ".");
+        }
+        return tasks;
+    }
+
+    private static Task parseTask(String line) {
+        String[] parts = line.split("\\s*\\|\\s*", -1);
+
+        if (parts.length < 3) {
+            throw new IllegalArgumentException("Not enough fields");
+        }
+
+        String type = parts[0];
+        String status = parts[1];
+        String description = parts[2];
+
+        if (!status.equals("0") && !status.equals("1")) {
+            throw new IllegalArgumentException("Invalid status");
+        }
+
+        if (description.isEmpty()) {
+            throw new IllegalArgumentException("Missing description");
+        }
+
+        Task loadedTask;
+
+        switch (type) {
+        case "T":
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Invalid todo format");
+            }
+            loadedTask = new ToDo(description);
+            break;
+
+        case "D":
+            if (parts.length != 4 || parts[3].isEmpty()) {
+                throw new IllegalArgumentException("Invalid deadline format");
+            }
+            loadedTask = new Deadline(description, parts[3]);
+            break;
+
+        case "E":
+            if (parts.length == 5 && !parts[3].isEmpty() && !parts[4].isEmpty()) {
+                loadedTask = new Event(description, parts[3], parts[4]);
+            } else if (parts.length == 4 && !parts[3].isEmpty()) {
+                String[] range = splitLegacyEventRange(parts[3]);
+                loadedTask = new Event(description, range[0], range[1]);
+            } else {
+                throw new IllegalArgumentException("Invalid event format");
+            }
+            break;
+
+        default:
+            throw new IllegalArgumentException("Unknown task type");
+        }
+
+        if (status.equals("1")) {
+            loadedTask.mark();
+        }
+
+        return loadedTask;
+    }
+
+    private static String[] splitLegacyEventRange(String timeRange) {
+        int toIndex = timeRange.indexOf(" to ");
+        if (toIndex >= 0) {
+            String from = timeRange.substring(0, toIndex).trim();
+            String to = timeRange.substring(toIndex + 4).trim();
+            if (!from.isEmpty() && !to.isEmpty()) {
+                return new String[] {from, to};
+            }
+        }
+
+        int dashIndex = timeRange.lastIndexOf('-');
+        if (dashIndex > 0 && dashIndex < timeRange.length() - 1) {
+            String from = timeRange.substring(0, dashIndex).trim();
+            String to = timeRange.substring(dashIndex + 1).trim();
+            if (!from.isEmpty() && !to.isEmpty()) {
+                return new String[] {from, to};
+            }
+        }
+
+        throw new IllegalArgumentException("Invalid event range");
+    }
+
+    private static void saveTasks(List<Task> tasks) {
+        List<String> lines = new ArrayList<String>();
+
+        for (Task currentTask : tasks) {
+            String status = currentTask.isDone ? "1" : "0";
+
+            if (currentTask instanceof ToDo) {
+                lines.add("T | " + status + " | " + currentTask.description);
+            } else if (currentTask instanceof Deadline) {
+                Deadline deadline = (Deadline) currentTask;
+                lines.add("D | " + status + " | " + deadline.description
+                    + " | " + deadline.ddl);
+            } else if (currentTask instanceof Event) {
+                Event event = (Event) currentTask;
+                lines.add("E | " + status + " | " + event.description
+                    + " | " + event.from + " | " + event.to);
+            }
+        }
+
+        try {
+            Path parent = DATA_FILE.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Files.write(DATA_FILE, lines);
+        } catch (IOException e) {
+            System.out.println("WARNING: could not save tasks to " + DATA_FILE + ".");
+        }
+    }
+
     public static void main(String[] args) {
         String banner = " ____  _____ _     \n"
                       + "/ ___|| ____| |    \n"
@@ -29,7 +182,7 @@ public class Sel {
 
         Scanner scanner = new Scanner(System.in);
 
-        List<Task> task = new ArrayList<Task>();
+        List<Task> task = loadTasks();
 
         while (true) {
             if (!scanner.hasNextLine()) {
@@ -108,6 +261,7 @@ public class Sel {
                     }
 
                     task.get(index).mark();
+                    saveTasks(task);
 
                     System.out.println(line_break
                         + "\nMarked task as done: \n"
@@ -140,6 +294,7 @@ public class Sel {
                     }
 
                     task.get(index).unmark();
+                    saveTasks(task);
 
                     System.out.println(line_break
                         + "\nUnmarked task as done: \n"
@@ -173,6 +328,7 @@ public class Sel {
 
                     Task deletedTask = task.get(index);
                     task.remove(index);
+                    saveTasks(task);
 
                     System.out.println(line_break
                         + "\nYay! You have fewer tasks now! \n"
@@ -206,6 +362,7 @@ public class Sel {
                 }
 
                 task.add(new ToDo(description));
+                saveTasks(task);
 
                 System.out.println(line_break
                     + "\nWhy more work for you?!?! \n"
@@ -249,6 +406,7 @@ public class Sel {
                 }
 
                 task.add(new Deadline(description, ddl));
+                saveTasks(task);
 
                 System.out.println(line_break
                     + "\nWhy more work for you?!?! \n"
@@ -315,6 +473,7 @@ public class Sel {
                 }
 
                 task.add(new Event(description, from, to));
+                saveTasks(task);
 
                 System.out.println(line_break
                     + "\nWhy more work for you?!?! \n"
