@@ -133,10 +133,12 @@ public class Storage {
 
         case "E":
             if (parts.length == 5 && !parts[3].isEmpty() && !parts[4].isEmpty()) {
-                loadedTask = new Event(description, parseStoredDateTime(parts[3]), parseStoredDateTime(parts[4]));
+                loadedTask = new Event(description, 
+        parseStoredDateTime(parts[3]), parseStoredDateTime(parts[4]));
             } else if (parts.length == 4 && !parts[3].isEmpty()) {
                 String[] range = splitLegacyEventRange(parts[3]);
-                loadedTask = new Event(description, parseStoredDateTime(range[0]), parseStoredDateTime(range[1]));
+                loadedTask = new Event(description, 
+        parseStoredDateTime(range[0]), parseStoredDateTime(range[1]));
             } else {
                 throw new IllegalArgumentException("Invalid event format");
             }

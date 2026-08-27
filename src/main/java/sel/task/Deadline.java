@@ -4,7 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class Deadline extends Task {
-    private static final DateTimeFormatter display_format = 
+    private static final DateTimeFormatter DISPLAY_FORMAT = 
         DateTimeFormatter.ofPattern("MMM d yyy, h:mma", Locale.ENGLISH);
     
     protected LocalDateTime ddl;
@@ -20,6 +20,6 @@ public class Deadline extends Task {
 
     @Override
     public String toString() {
-        return "[D][" + this.getStatusIcon() + "] " + this.description + "(by:" + this.ddl.format(display_format) + ")";
+        return "[D][" + this.getStatusIcon() + "] " + this.description + "(by:" + this.ddl.format(DISPLAY_FORMAT) + ")";
     }
 }

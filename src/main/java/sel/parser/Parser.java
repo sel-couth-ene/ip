@@ -5,34 +5,34 @@ import java.time.format.DateTimeParseException;
 
 import sel.exception.SelException;
 
-import sel.command.Commandtype;
+import sel.command.CommandType;
 
 public class Parser {
     private static final DateTimeFormatter INPUT_FORMAT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
 
-    public static Commandtype parseCommandType(String fullCommand) {
+    public static CommandType parseCommandType(String fullCommand) {
         String commandWord = fullCommand.trim().split("\\s+", 2)[0];
 
         switch (commandWord) {
         case "bye":
-            return Commandtype.BYE;
+            return CommandType.BYE;
         case "list":
-            return Commandtype.LIST;
+            return CommandType.LIST;
         case "mark":
-            return Commandtype.MARK;
+            return CommandType.MARK;
         case "unmark":
-            return Commandtype.UNMARK;
+            return CommandType.UNMARK;
         case "delete":
-            return Commandtype.DELETE;
+            return CommandType.DELETE;
         case "todo":
-            return Commandtype.TODO;
+            return CommandType.TODO;
         case "deadline":
-            return Commandtype.DEADLINE;
+            return CommandType.DEADLINE;
         case "event":
-            return Commandtype.EVENT;
+            return CommandType.EVENT;
         default:
-            return Commandtype.UNKNOWN;
+            return CommandType.UNKNOWN;
         }
     }
 

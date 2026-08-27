@@ -1,5 +1,5 @@
 package sel.command;
-public enum Commandtype {
+public enum CommandType {
     BYE,
     LIST,
     MARK,

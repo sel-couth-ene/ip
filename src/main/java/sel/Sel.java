@@ -2,7 +2,7 @@ package sel;
 
 import java.time.LocalDateTime;
 
-import sel.command.Commandtype;
+import sel.command.CommandType;
 import sel.exception.SelException;
 import sel.parser.Parser;
 import sel.storage.Storage;
@@ -40,7 +40,7 @@ public class Sel {
                 break;
             }
 
-            Commandtype commandType = Parser.parseCommandType(command);
+            CommandType commandType = Parser.parseCommandType(command);
 
             try {
                 switch (commandType) {
