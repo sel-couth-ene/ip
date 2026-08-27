@@ -72,14 +72,14 @@ public class Storage {
             String status = currentTask.isDone() ? "1" : "0";
 
             if (currentTask instanceof ToDo) {
-                lines.add("T | " + status + " | " + currentTask.toString());
+                lines.add("T | " + status + " | " + currentTask.getDescription());
             } else if (currentTask instanceof Deadline) {
                 Deadline deadline = (Deadline) currentTask;
-                lines.add("D | " + status + " | " + deadline.toString()
+                lines.add("D | " + status + " | " + deadline.getDescription()
                     + " | " + deadline.getDDL());
             } else if (currentTask instanceof Event) {
                 Event event = (Event) currentTask;
-                lines.add("E | " + status + " | " + event.toString()
+                lines.add("E | " + status + " | " + event.getDescription()
                     + " | " + event.getFrom() + " | " + event.getTo());
             }
         }
