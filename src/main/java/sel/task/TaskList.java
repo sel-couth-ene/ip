@@ -1,7 +1,11 @@
 package sel.task;
+
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Contains the task list and operations to add/delete/mark tasks in it.
+ */
 public class TaskList {
     private final List<Task> tasks;
 
@@ -41,7 +45,26 @@ public class TaskList {
         tasks.get(index).unmark();
     }
 
+    /** Returns the underlying list, e.g. so Storage can persist it. */
     public List<Task> asList() {
         return tasks;
+    }
+
+    /**
+     * Returns all tasks whose description contains the given keyword
+     * (case-insensitive, substring match).
+     *
+     * @param keyword the keyword to search for.
+     * @return a new list of matching tasks, in their original order.
+     */
+    public List<Task> find(String keyword) {
+        List<Task> matches = new ArrayList<>();
+        String lowerKeyword = keyword.toLowerCase();
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
     }
 }

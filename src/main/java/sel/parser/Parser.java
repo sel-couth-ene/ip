@@ -1,41 +1,54 @@
 package sel.parser;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+import sel.command.CommandType;
 import sel.exception.SelException;
 
-import sel.command.Commandtype;
-
+/**
+ * Deals with making sense of the user command: identifying the command
+ * type and extracting the arguments it needs.
+ */
 public class Parser {
+    // Format expected when the user types a date/time on the command line,
+    // e.g. "2019-12-02 1800"
     private static final DateTimeFormatter INPUT_FORMAT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
 
-    public static Commandtype parseCommandType(String fullCommand) {
+    /** Identifies which command the user typed. */
+    public static CommandType parseCommandType(String fullCommand) {
         String commandWord = fullCommand.trim().split("\\s+", 2)[0];
 
         switch (commandWord) {
         case "bye":
-            return Commandtype.BYE;
+            return CommandType.BYE;
         case "list":
-            return Commandtype.LIST;
+            return CommandType.LIST;
         case "mark":
-            return Commandtype.MARK;
+            return CommandType.MARK;
         case "unmark":
-            return Commandtype.UNMARK;
+            return CommandType.UNMARK;
         case "delete":
-            return Commandtype.DELETE;
+            return CommandType.DELETE;
         case "todo":
-            return Commandtype.TODO;
+            return CommandType.TODO;
         case "deadline":
-            return Commandtype.DEADLINE;
+            return CommandType.DEADLINE;
         case "event":
-            return Commandtype.EVENT;
+            return CommandType.EVENT;
+        case "find":
+            return CommandType.FIND;
         default:
-            return Commandtype.UNKNOWN;
+            return CommandType.UNKNOWN;
         }
     }
 
+    /**
+     * Extracts the (0-based) task index from a "mark"/"unmark"/"delete"
+     * style command, e.g. "mark 3" -> 2.
+     */
     public static int parseIndex(String fullCommand, String commandWord,
             String missingArgMessage, String invalidNumberMessage) throws SelException {
         if (fullCommand.equals(commandWord)) {
@@ -49,6 +62,10 @@ public class Parser {
         }
     }
 
+    /**
+     * Extracts a single free-text argument from a command, e.g.
+     * "todo read book" -> "read book".
+     */
     public static String parseSimpleArgument(String fullCommand, String commandWord,
             String errorMessage) throws SelException {
         if (fullCommand.equals(commandWord)) {
@@ -62,6 +79,9 @@ public class Parser {
         return argument;
     }
 
+    /**
+     * Extracts { description, deadline } from a "deadline ... /by ..." command.
+     */
     public static String[] parseDeadlineArgs(String fullCommand) throws SelException {
         if (fullCommand.equals("deadline")) {
             throw new SelException("Bro, you need to tell me what's the task :(");
@@ -85,6 +105,10 @@ public class Parser {
         return new String[] {description, ddl};
     }
 
+    /**
+     * Extracts { description, from, to } from an
+     * "event ... /from ... /to ..." command.
+     */
     public static String[] parseEventArgs(String fullCommand) throws SelException {
         if (fullCommand.equals("event")) {
             throw new SelException("Bro, you need to tell me what's the event :(");
@@ -117,6 +141,10 @@ public class Parser {
         return new String[] {description, from, to};
     }
 
+    /**
+     * Parses a user-typed date/time string (e.g. "2019-12-02 1800") into a
+     * LocalDateTime.
+     */
     public static LocalDateTime parseDateTime(String input) throws SelException {
         try {
             return LocalDateTime.parse(input.trim(), INPUT_FORMAT);
