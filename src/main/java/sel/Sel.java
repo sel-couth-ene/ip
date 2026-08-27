@@ -1,8 +1,9 @@
 package sel;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-import sel.command.Commandtype;
+import sel.command.CommandType;
 import sel.exception.SelException;
 import sel.parser.Parser;
 import sel.storage.Storage;
@@ -40,7 +41,7 @@ public class Sel {
                 break;
             }
 
-            Commandtype commandType = Parser.parseCommandType(command);
+            CommandType commandType = Parser.parseCommandType(command);
 
             try {
                 switch (commandType) {
@@ -68,6 +69,9 @@ public class Sel {
                     break;
                 case EVENT:
                     handleEvent(command);
+                    break;
+                case FIND:
+                    handleFind(command);
                     break;
                 default:
                     ui.showError("Rephrase your words, no idea what u mean bro.");
@@ -117,7 +121,7 @@ public class Sel {
             throw new SelException("Bro, that task doesn't exist :(");
         }
 
-        Task deletedTask = tasks.delete(index);
+        var deletedTask = tasks.delete(index);
         storage.save(tasks.asList());
         ui.showTaskDeleted(deletedTask, tasks.size());
     }
@@ -150,6 +154,14 @@ public class Sel {
         tasks.add(new Event(description, from, to));
         storage.save(tasks.asList());
         ui.showTaskAdded(tasks.get(tasks.size() - 1), tasks.size());
+    }
+
+    private void handleFind(String command) throws SelException {
+        String keyword = Parser.parseSimpleArgument(command, "find",
+            "Bro, you need to tell me what to search for :(");
+
+        List<Task> matches = tasks.find(keyword);
+        ui.showMatchingTasks(matches);
     }
 
     public static void main(String[] args) {

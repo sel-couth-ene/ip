@@ -1,5 +1,6 @@
 package sel.command;
-public enum Commandtype {
+
+public enum CommandType {
     BYE,
     LIST,
     MARK,
@@ -8,5 +9,6 @@ public enum Commandtype {
     TODO,
     DEADLINE,
     EVENT,
+    FIND,
     UNKNOWN
 }
