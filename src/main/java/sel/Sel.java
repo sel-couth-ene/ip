@@ -221,7 +221,7 @@ public class Sel {
 
     private void handleFind(String command) throws SelException {
         String keyword = Parser.parseSimpleArgument(command, "find",
-        "Bro, you need to tell me what to search for :(");
+            "Bro, you need to tell me what to search for :(");
 
         List<Task> matches = tasks.find(keyword);
         ui.showMatchingTasks(matches);

@@ -21,6 +21,8 @@ public enum CommandType {
     DEADLINE,
     /** Adds a new event task. */
     EVENT,
+    /** Find */
+    FIND, 
     /** Represents any input that does not match a known command. */
     UNKNOWN
 }
