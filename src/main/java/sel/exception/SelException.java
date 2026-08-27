@@ -1,3 +1,4 @@
+package sel.exception;
 public class SelException extends Exception{
     
     public SelException(String message) {

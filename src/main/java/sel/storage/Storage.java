@@ -1,4 +1,4 @@
-package storage;
+package sel.storage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,12 +8,12 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import exception.SelException;
-import task.Deadline;
-import task.Event;
-import task.Task;
-import task.ToDo;
-import ui.Ui;
+import sel.exception.SelException;
+import sel.task.Deadline;
+import sel.task.Event;
+import sel.task.Task;
+import sel.task.ToDo;
+import sel.ui.Ui;
 
 public class Storage {
     private final Path filePath;

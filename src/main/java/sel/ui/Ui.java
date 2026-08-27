@@ -1,4 +1,9 @@
+package sel.ui;
 import java.util.Scanner;
+
+import sel.exception.SelException;
+import sel.task.Task;
+import sel.task.TaskList;
 
 public class Ui {
     private static final String LINE_BREAK = "-----------------------------------------";
