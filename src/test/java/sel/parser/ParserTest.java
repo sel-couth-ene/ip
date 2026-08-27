@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
 import sel.command.CommandType;
+import sel.command.CommandType;
 import sel.exception.SelException;
 
 public class ParserTest {
