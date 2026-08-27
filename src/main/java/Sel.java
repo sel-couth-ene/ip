@@ -1,11 +1,13 @@
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 enum CommandType {
     BYE,
@@ -21,6 +23,26 @@ enum CommandType {
 
 public class Sel {
     private static final Path DATA_FILE = Paths.get("data", "sel.txt");
+
+    private static final DateTimeFormatter input_format =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+
+    private static LocalDateTime parseDateTime(String input) {
+        try {
+            return LocalDateTime.parse(input.trim(), input_format);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                "Invalid date/time format. Please use yyyy-MM-dd HHmm (e.g. 2019-12-02 1800).");
+        }
+    }
+
+    private static LocalDateTime parseStoredDateTime(String input) {
+        try {
+            return LocalDateTime.parse(input.trim());
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid stored date/time: " + input);
+        }
+    }
 
     private static List<Task> loadTasks() {
         List<Task> tasks = new ArrayList<Task>();
@@ -91,15 +113,15 @@ public class Sel {
             if (parts.length != 4 || parts[3].isEmpty()) {
                 throw new IllegalArgumentException("Invalid deadline format");
             }
-            loadedTask = new Deadline(description, parts[3]);
+            loadedTask = new Deadline(description, parseStoredDateTime(parts[3]));
             break;
 
         case "E":
             if (parts.length == 5 && !parts[3].isEmpty() && !parts[4].isEmpty()) {
-                loadedTask = new Event(description, parts[3], parts[4]);
+                loadedTask = new Event(description, parseStoredDateTime(parts[3]), parseStoredDateTime(parts[4]));
             } else if (parts.length == 4 && !parts[3].isEmpty()) {
                 String[] range = splitLegacyEventRange(parts[3]);
-                loadedTask = new Event(description, range[0], range[1]);
+                loadedTask = new Event(description, parseStoredDateTime(range[0]), parseStoredDateTime(range[1]));
             } else {
                 throw new IllegalArgumentException("Invalid event format");
             }
@@ -149,11 +171,11 @@ public class Sel {
             } else if (currentTask instanceof Deadline) {
                 Deadline deadline = (Deadline) currentTask;
                 lines.add("D | " + status + " | " + deadline.description
-                    + " | " + deadline.ddl);
+                    + " | " + deadline.getDDL());
             } else if (currentTask instanceof Event) {
                 Event event = (Event) currentTask;
                 lines.add("E | " + status + " | " + event.description
-                    + " | " + event.from + " | " + event.to);
+                    + " | " + event.getFrom() + " | " + event.getTo());
             }
         }
 
@@ -164,7 +186,7 @@ public class Sel {
             }
             Files.write(DATA_FILE, lines);
         } catch (IOException e) {
-            System.out.println("WARNING: could not save tasks to " + DATA_FILE + ".");
+            System.out.println("WARNING: failed to save tasks to " + DATA_FILE + ".");
         }
     }
 
@@ -405,7 +427,15 @@ public class Sel {
                     continue;
                 }
 
-                task.add(new Deadline(description, ddl));
+                LocalDateTime parsedDdl;
+                try {
+                    parsedDdl = parseDateTime(ddl);
+                } catch (IllegalArgumentException e) {
+                    System.out.println(new SelException("Bro, " + e.getMessage()));
+                    continue;
+                }
+
+                task.add(new Deadline(description, parsedDdl));
                 saveTasks(task);
 
                 System.out.println(line_break
@@ -472,7 +502,17 @@ public class Sel {
                     continue;
                 }
 
-                task.add(new Event(description, from, to));
+                LocalDateTime parsedFrom;
+                LocalDateTime parsedTo;
+                try {
+                    parsedFrom = parseDateTime(from);
+                    parsedTo = parseDateTime(to);
+                } catch (IllegalArgumentException e) {
+                    System.out.println(new SelException("Bro, " + e.getMessage()));
+                    continue;
+                }
+
+                task.add(new Event(description, parsedFrom, parsedTo));
                 saveTasks(task);
 
                 System.out.println(line_break
