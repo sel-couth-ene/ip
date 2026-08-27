@@ -1,25 +1,46 @@
 package sel.task;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+/**
+ * Represents a task that must be completed by a specific date and time.
+ */
 public class Deadline extends Task {
-    private static final DateTimeFormatter display_format = 
+    private static final DateTimeFormatter DISPLAY_FORMAT = 
         DateTimeFormatter.ofPattern("MMM d yyy, h:mma", Locale.ENGLISH);
-    
+
     protected LocalDateTime ddl;
 
+    /**
+     * Creates a new, not-done deadline task.
+     *
+     * @param description text describing the task.
+     * @param ddl the date and time by which the task must be completed.
+     */
     public Deadline(String description, LocalDateTime ddl) {
         super(description);
         this.ddl = ddl;
     }
 
+    /**
+     * Returns the date and time by which this task must be completed.
+     *
+     * @return the deadline's date and time.
+     */
     public LocalDateTime getDDL() {
         return this.ddl;
     }
 
+    /**
+     * Returns the display form of this deadline, e.g.
+     * {@code "[D][ ] return book(by:Dec 2 2019, 6:00PM)"}.
+     *
+     * @return the formatted string representation of this deadline.
+     */
     @Override
     public String toString() {
-        return "[D][" + this.getStatusIcon() + "] " + this.description + "(by:" + this.ddl.format(display_format) + ")";
+        return "[D][" + this.getStatusIcon() + "] " + this.description + "(by:" + this.ddl.format(DISPLAY_FORMAT) + ")";
     }
 }
