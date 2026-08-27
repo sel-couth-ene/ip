@@ -1,4 +1,5 @@
 package sel.storage;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,20 +16,43 @@ import sel.task.Task;
 import sel.task.ToDo;
 import sel.ui.Ui;
 
+/**
+ * Deals with loading tasks from the save file and saving tasks back to it.
+ */
 public class Storage {
     private final Path filePath;
     private final Ui ui;
 
+    /**
+     * Creates a Storage that reads from and writes to the given file path,
+     * using a default {@link Ui} for warning messages.
+     *
+     * @param filePath the path to the save file.
+     */
     public Storage(String filePath) {
         this(filePath, new Ui());
     }
 
+    /**
+     * Creates a Storage that reads from and writes to the given file path,
+     * reporting warnings through the given {@link Ui}.
+     *
+     * @param filePath the path to the save file.
+     * @param ui the Ui to use for warning messages.
+     */
     public Storage(String filePath, Ui ui) {
         this.filePath = Paths.get(filePath);
         this.ui = ui;
     }
 
-    // @throws SelException
+    /**
+     * Loads tasks from the save file, creating it (and its parent
+     * directory) if it does not already exist. Lines that cannot be
+     * parsed are skipped with a warning rather than aborting the load.
+     *
+     * @return the list of tasks read from the save file.
+     * @throws SelException if the file cannot be read or created.
+     */
     public List<Task> load() throws SelException {
         List<Task> tasks = new ArrayList<>();
 
@@ -65,6 +89,12 @@ public class Storage {
         return tasks;
     }
 
+    /**
+     * Saves the given tasks to the save file, overwriting its previous
+     * contents entirely.
+     *
+     * @param tasks the tasks to save.
+     */
     public void save(List<Task> tasks) {
         List<String> lines = new ArrayList<>();
 
@@ -95,6 +125,15 @@ public class Storage {
         }
     }
 
+    /**
+     * Parses a single save-file line into a {@link Task}.
+     *
+     * @param line a single line from the save file, in the format
+     *     {@code TYPE | STATUS | DESCRIPTION | ...}.
+     * @return the task represented by the line.
+     * @throws IllegalArgumentException if the line is malformed or its
+     *     type/status/fields are invalid.
+     */
     private Task parseTask(String line) {
         String[] parts = line.split("\\s*\\|\\s*", -1);
 
@@ -155,6 +194,15 @@ public class Storage {
         return loadedTask;
     }
 
+    /**
+     * Splits a legacy single-field event time range (e.g. from an older
+     * save format) into its from/to components.
+     *
+     * @param timeRange the combined time range string.
+     * @return a two-element array of {@code {from, to}} strings.
+     * @throws IllegalArgumentException if the range cannot be split into
+     *     two non-empty parts.
+     */
     private String[] splitLegacyEventRange(String timeRange) {
         int toIndex = timeRange.indexOf(" to ");
         if (toIndex >= 0) {
@@ -177,6 +225,15 @@ public class Storage {
         throw new IllegalArgumentException("Invalid event range");
     }
 
+    /**
+     * Parses a date/time string as stored in the save file (ISO format)
+     * into a {@link LocalDateTime}.
+     *
+     * @param input the stored date/time string.
+     * @return the parsed date/time.
+     * @throws IllegalArgumentException if the string is not a valid ISO
+     *     date/time.
+     */
     private LocalDateTime parseStoredDateTime(String input) {
         try {
             return LocalDateTime.parse(input.trim());

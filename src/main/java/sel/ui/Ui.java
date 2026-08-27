@@ -1,19 +1,26 @@
 package sel.ui;
+
+import java.util.List;
 import java.util.Scanner;
 
 import sel.exception.SelException;
 import sel.task.Task;
 import sel.task.TaskList;
 
+/**
+ * Deals with interactions with the user: showing messages and reading input.
+ */
 public class Ui {
     private static final String LINE_BREAK = "-----------------------------------------";
 
     private final Scanner scanner;
 
+    /** Creates a new Ui backed by standard input. */
     public Ui() {
         this.scanner = new Scanner(System.in);
     }
 
+    /** Prints the startup banner and greeting. */
     public void showWelcome() {
         String banner = " ____  _____ _     \n"
                       + "/ ___|| ____| |    \n"
@@ -25,6 +32,12 @@ public class Ui {
         System.out.println(LINE_BREAK);
     }
 
+    /**
+     * Reads the next line of user input.
+     *
+     * @return the next line typed by the user, or {@code null} if there is
+     *     no more input (e.g. end of stream).
+     */
     public String readCommand() {
         if (!scanner.hasNextLine()) {
             return null;
@@ -32,28 +45,48 @@ public class Ui {
         return scanner.nextLine();
     }
 
+    /** Prints the farewell message. */
     public void showGoodbye() {
         System.out.println(LINE_BREAK
             + "\nBye see ya later alligator.\n"
             + LINE_BREAK);
     }
 
+    /** Prints a warning that saved tasks could not be loaded. */
     public void showLoadingError() {
         System.out.println("WARNING: failed to load tasks from disk.");
     }
 
+    /**
+     * Prints a warning that a specific line in the save file was corrupted
+     * and had to be skipped.
+     *
+     * @param lineNumber the 1-based line number of the corrupted line.
+     */
     public void showCorruptedLineWarning(int lineNumber) {
         System.out.println("WARNING: skipped corrupted data on line " + lineNumber + ".");
     }
 
+    /** Prints a warning that tasks could not be saved to disk. */
     public void showSavingError() {
         System.out.println("WARNING: failed to save tasks to disk.");
     }
 
+    /**
+     * Prints an error message, wrapped the same way {@link SelException}
+     * prints.
+     *
+     * @param message the error message to display.
+     */
     public void showError(String message) {
         System.out.println(new SelException(message));
     }
 
+    /**
+     * Prints the full task list, one task per line, numbered from 1.
+     *
+     * @param tasks the task list to display.
+     */
     public void showTaskList(TaskList tasks) {
         System.out.println(LINE_BREAK
             + "\nBro why do you want to see the list??? anyway here it is:");
@@ -63,6 +96,11 @@ public class Ui {
         System.out.println(LINE_BREAK);
     }
 
+    /**
+     * Prints confirmation that a task was marked done.
+     *
+     * @param task the task that was marked.
+     */
     public void showTaskMarked(Task task) {
         System.out.println(LINE_BREAK
             + "\nMarked task as done: \n"
@@ -71,6 +109,11 @@ public class Ui {
             + LINE_BREAK);
     }
 
+    /**
+     * Prints confirmation that a task was unmarked.
+     *
+     * @param task the task that was unmarked.
+     */
     public void showTaskUnmarked(Task task) {
         System.out.println(LINE_BREAK
             + "\nUnmarked task as done: \n"
@@ -79,6 +122,12 @@ public class Ui {
             + LINE_BREAK);
     }
 
+    /**
+     * Prints confirmation that a task was deleted.
+     *
+     * @param task the task that was deleted.
+     * @param remainingCount the number of tasks left in the list.
+     */
     public void showTaskDeleted(Task task, int remainingCount) {
         System.out.println(LINE_BREAK
             + "\nYay! You have fewer tasks now! \n"
@@ -89,6 +138,12 @@ public class Ui {
             + LINE_BREAK);
     }
 
+    /**
+     * Prints confirmation that a task was added.
+     *
+     * @param task the task that was added.
+     * @param newCount the number of tasks now in the list.
+     */
     public void showTaskAdded(Task task, int newCount) {
         System.out.println(LINE_BREAK
             + "\nWhy more work for you?!?! \n"
@@ -99,6 +154,7 @@ public class Ui {
             + LINE_BREAK);
     }
 
+    /** Releases the input resource. */
     public void close() {
         scanner.close();
     }
