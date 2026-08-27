@@ -1,3 +1,4 @@
+package sel.command;
 public enum Commandtype {
     BYE,
     LIST,
