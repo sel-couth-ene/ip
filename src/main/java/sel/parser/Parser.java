@@ -17,14 +17,7 @@ public class Parser {
     private static final DateTimeFormatter INPUT_FORMAT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
 
-    /**
-     * Identifies which command the user typed, based on its first word.
-     *
-     * @param fullCommand the raw command line typed by the user.
-     * @return the matching {@link Commandtype}, or {@code UNKNOWN} if the
-     *     first word does not match any known command.
-     */
-    public static Commandtype parseCommandType(String fullCommand) {
+    public static CommandType parseCommandType(String fullCommand) {
         String commandWord = fullCommand.trim().split("\\s+", 2)[0];
 
         switch (commandWord) {
