@@ -219,6 +219,14 @@ public class Sel {
         ui.showTaskAdded(tasks.get(tasks.size() - 1), tasks.size());
     }
 
+    private void handleFind(String command) throws SelException {
+        String keyword = Parser.parseSimpleArgument(command, "find",
+        "Bro, you need to tell me what to search for :(");
+
+        List<Task> matches = tasks.find(keyword);
+        ui.showMatchingTasks(matches);
+    }
+
     /**
      * Starts the Sel application, loading and saving tasks to
      * {@code data/sel.txt} relative to the working directory.
