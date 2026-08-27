@@ -1,3 +1,4 @@
+package storage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -6,6 +7,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+
+import exception.SelException;
+import task.Deadline;
+import task.Event;
+import task.Task;
+import task.ToDo;
+import ui.Ui;
 
 public class Storage {
     private final Path filePath;
@@ -61,17 +69,17 @@ public class Storage {
         List<String> lines = new ArrayList<>();
 
         for (Task currentTask : tasks) {
-            String status = currentTask.isDone ? "1" : "0";
+            String status = currentTask.isDone() ? "1" : "0";
 
             if (currentTask instanceof ToDo) {
-                lines.add("T | " + status + " | " + currentTask.description);
+                lines.add("T | " + status + " | " + currentTask.toString());
             } else if (currentTask instanceof Deadline) {
                 Deadline deadline = (Deadline) currentTask;
-                lines.add("D | " + status + " | " + deadline.description
+                lines.add("D | " + status + " | " + deadline.toString()
                     + " | " + deadline.getDDL());
             } else if (currentTask instanceof Event) {
                 Event event = (Event) currentTask;
-                lines.add("E | " + status + " | " + event.description
+                lines.add("E | " + status + " | " + event.toString()
                     + " | " + event.getFrom() + " | " + event.getTo());
             }
         }
