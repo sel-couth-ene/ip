@@ -5,8 +5,7 @@ package sel.command;
  * Used by {@link sel.parser.Parser} to classify raw input before dispatching
  * it to the appropriate handler in {@code Sel}.
  */
-public enum Commandtype {
-    /** Exits the application. */
+public enum CommandType {
     BYE,
     /** Lists all tasks currently in the task list. */
     LIST,

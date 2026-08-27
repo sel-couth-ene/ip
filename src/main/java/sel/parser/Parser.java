@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-import sel.command.Commandtype;
+import sel.command.CommandType;
 import sel.exception.SelException;
 
 /**
@@ -29,23 +29,25 @@ public class Parser {
 
         switch (commandWord) {
         case "bye":
-            return Commandtype.BYE;
+            return CommandType.BYE;
         case "list":
-            return Commandtype.LIST;
+            return CommandType.LIST;
         case "mark":
-            return Commandtype.MARK;
+            return CommandType.MARK;
         case "unmark":
-            return Commandtype.UNMARK;
+            return CommandType.UNMARK;
         case "delete":
-            return Commandtype.DELETE;
+            return CommandType.DELETE;
         case "todo":
-            return Commandtype.TODO;
+            return CommandType.TODO;
         case "deadline":
-            return Commandtype.DEADLINE;
+            return CommandType.DEADLINE;
         case "event":
-            return Commandtype.EVENT;
+            return CommandType.EVENT;
+        case "find":
+            return CommandType.FIND;
         default:
-            return Commandtype.UNKNOWN;
+            return CommandType.UNKNOWN;
         }
     }
 

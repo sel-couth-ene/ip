@@ -1,8 +1,9 @@
 package sel;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-import sel.command.Commandtype;
+import sel.command.CommandType;
 import sel.exception.SelException;
 import sel.parser.Parser;
 import sel.storage.Storage;
@@ -56,7 +57,7 @@ public class Sel {
                 break;
             }
 
-            Commandtype commandType = Parser.parseCommandType(command);
+            CommandType commandType = Parser.parseCommandType(command);
 
             try {
                 switch (commandType) {
@@ -84,6 +85,9 @@ public class Sel {
                     break;
                 case EVENT:
                     handleEvent(command);
+                    break;
+                case FIND:
+                    handleFind(command);
                     break;
                 default:
                     ui.showError("Rephrase your words, no idea what u mean bro.");
@@ -157,7 +161,7 @@ public class Sel {
             throw new SelException("Bro, that task doesn't exist :(");
         }
 
-        Task deletedTask = tasks.delete(index);
+        var deletedTask = tasks.delete(index);
         storage.save(tasks.asList());
         ui.showTaskDeleted(deletedTask, tasks.size());
     }
