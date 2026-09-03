@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test;
 public class DeadlineTest {
 
     @Test
-    public void getDDL_returnsExactValuePassedIn() {
+    public void getDdl_returnsExactValuePassedIn() {
         LocalDateTime ddl = LocalDateTime.of(2019, 12, 2, 18, 0);
         Deadline deadline = new Deadline("return book", ddl);
-        assertEquals(ddl, deadline.getDDL());
+        assertEquals(ddl, deadline.getDdl());
     }
 
     @Test

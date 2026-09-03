@@ -9,7 +9,7 @@ import java.util.Locale;
  * date/time to an end date/time.
  */
 public class Event extends Task {
-    private static final DateTimeFormatter DISPLAY_FORMAT = 
+    private static final DateTimeFormatter DISPLAY_FORMAT =
         DateTimeFormatter.ofPattern("MMM d yyyy, h:mma", Locale.ENGLISH);
 
     protected LocalDateTime from;
@@ -54,7 +54,8 @@ public class Event extends Task {
      */
     @Override
     public String toString() {
-        return "[E][" + this.getStatusIcon() + "] " + this.description 
-                + "(from:" + this.from.format(DISPLAY_FORMAT) + " to:" + this.to.format(DISPLAY_FORMAT) + ")";
+        return "[E][" + this.getStatusIcon() + "] " + this.description
+                + "(from:" + this.from.format(DISPLAY_FORMAT)
+                + " to:" + this.to.format(DISPLAY_FORMAT) + ")";
     }
 }

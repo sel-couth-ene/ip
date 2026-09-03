@@ -15,32 +15,38 @@ public class Parser {
     // Format expected when the user types a date/time on the command line,
     // e.g. "2019-12-02 1800"
     private static final DateTimeFormatter INPUT_FORMAT =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
 
+    /**
+     * Identifies the command type from the first word of the input.
+     *
+     * @param fullCommand the raw command entered by the user.
+     * @return the corresponding command type.
+     */
     public static CommandType parseCommandType(String fullCommand) {
         String commandWord = fullCommand.trim().split("\\s+", 2)[0];
 
         switch (commandWord) {
-        case "bye":
-            return CommandType.BYE;
-        case "list":
-            return CommandType.LIST;
-        case "mark":
-            return CommandType.MARK;
-        case "unmark":
-            return CommandType.UNMARK;
-        case "delete":
-            return CommandType.DELETE;
-        case "todo":
-            return CommandType.TODO;
-        case "deadline":
-            return CommandType.DEADLINE;
-        case "event":
-            return CommandType.EVENT;
-        case "find":
-            return CommandType.FIND;
-        default:
-            return CommandType.UNKNOWN;
+            case "bye":
+                return CommandType.BYE;
+            case "list":
+                return CommandType.LIST;
+            case "mark":
+                return CommandType.MARK;
+            case "unmark":
+                return CommandType.UNMARK;
+            case "delete":
+                return CommandType.DELETE;
+            case "todo":
+                return CommandType.TODO;
+            case "deadline":
+                return CommandType.DEADLINE;
+            case "event":
+                return CommandType.EVENT;
+            case "find":
+                return CommandType.FIND;
+            default:
+                return CommandType.UNKNOWN;
         }
     }
 
@@ -179,7 +185,8 @@ public class Parser {
             return LocalDateTime.parse(input.trim(), INPUT_FORMAT);
         } catch (DateTimeParseException e) {
             throw new SelException(
-                "Bro, invalid date/time format. Please use yyyy-MM-dd HHmm (e.g. 2019-12-02 1800).");
+                    "Bro, invalid date/time format. Please use yyyy-MM-dd HHmm "
+                    + "(e.g. 2019-12-02 1800).");
         }
     }
 }

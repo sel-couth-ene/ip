@@ -154,6 +154,11 @@ public class Ui {
             + LINE_BREAK);
     }
 
+    /**
+     * Displays tasks whose descriptions match the user's search keyword.
+     *
+     * @param matches the matching tasks to display
+     */
     public void showMatchingTasks(List<Task> matches) {
         System.out.println(LINE_BREAK);
         if (matches.isEmpty()) {

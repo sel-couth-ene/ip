@@ -106,7 +106,7 @@ public class Storage {
             } else if (currentTask instanceof Deadline) {
                 Deadline deadline = (Deadline) currentTask;
                 lines.add("D | " + status + " | " + deadline.getDescription()
-                    + " | " + deadline.getDDL());
+                    + " | " + deadline.getDdl());
             } else if (currentTask instanceof Event) {
                 Event event = (Event) currentTask;
                 lines.add("E | " + status + " | " + event.getDescription()
@@ -156,35 +156,35 @@ public class Storage {
         Task loadedTask;
 
         switch (type) {
-        case "T":
-            if (parts.length != 3) {
-                throw new IllegalArgumentException("Invalid todo format");
-            }
-            loadedTask = new ToDo(description);
-            break;
+            case "T":
+                if (parts.length != 3) {
+                    throw new IllegalArgumentException("Invalid todo format");
+                }
+                loadedTask = new ToDo(description);
+                break;
 
-        case "D":
-            if (parts.length != 4 || parts[3].isEmpty()) {
-                throw new IllegalArgumentException("Invalid deadline format");
-            }
-            loadedTask = new Deadline(description, parseStoredDateTime(parts[3]));
-            break;
+            case "D":
+                if (parts.length != 4 || parts[3].isEmpty()) {
+                    throw new IllegalArgumentException("Invalid deadline format");
+                }
+                loadedTask = new Deadline(description, parseStoredDateTime(parts[3]));
+                break;
 
-        case "E":
-            if (parts.length == 5 && !parts[3].isEmpty() && !parts[4].isEmpty()) {
-                loadedTask = new Event(description, 
-                        parseStoredDateTime(parts[3]), parseStoredDateTime(parts[4]));
-            } else if (parts.length == 4 && !parts[3].isEmpty()) {
-                String[] range = splitLegacyEventRange(parts[3]);
-                        loadedTask = new Event(description, 
-        parseStoredDateTime(range[0]), parseStoredDateTime(range[1]));
-            } else {
-                throw new IllegalArgumentException("Invalid event format");
-            }
-            break;
+            case "E":
+                if (parts.length == 5 && !parts[3].isEmpty() && !parts[4].isEmpty()) {
+                    loadedTask = new Event(description,
+                            parseStoredDateTime(parts[3]), parseStoredDateTime(parts[4]));
+                } else if (parts.length == 4 && !parts[3].isEmpty()) {
+                    String[] range = splitLegacyEventRange(parts[3]);
+                    loadedTask = new Event(description,
+                            parseStoredDateTime(range[0]), parseStoredDateTime(range[1]));
+                } else {
+                    throw new IllegalArgumentException("Invalid event format");
+                }
+                break;
 
-        default:
-            throw new IllegalArgumentException("Unknown task type");
+            default:
+                throw new IllegalArgumentException("Unknown task type");
         }
 
         if (status.equals("1")) {
