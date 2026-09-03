@@ -45,13 +45,22 @@ public class MainWindow {
     }
 
     /**
+     * Adds one or more dialog boxes to the chat.
+     *
+     * @param dialogBoxes dialog boxes to add
+     */
+    private void addDialogs(DialogBox... dialogBoxes) {
+        dialogContainer.getChildren().addAll(dialogBoxes);
+    }
+
+    /**
      * Supplies the chatbot logic to this controller.
      *
      * @param sel the chatbot instance used to process commands
      */
     public void setSel(Sel sel) {
         this.sel = sel;
-        dialogContainer.getChildren().add(
+        addDialogs(
                 DialogBox.getSelDialog("Sup, I'm Sel.", selImage));
     }
 
@@ -70,7 +79,7 @@ public class MainWindow {
         String trimmedInput = input.trim();
         String response = sel.getResponse(trimmedInput);
 
-        dialogContainer.getChildren().addAll(
+        addDialogs(
                 DialogBox.getUserDialog(trimmedInput, userImage),
                 DialogBox.getSelDialog(response, selImage));
 
@@ -88,7 +97,7 @@ public class MainWindow {
         userInput.setDisable(true);
         sendButton.setDisable(true);
 
-        dialogContainer.getChildren().add(
+        addDialogs(
                 DialogBox.getSelDialog("App closing in", selImage));
 
         Timeline countdown = new Timeline(
