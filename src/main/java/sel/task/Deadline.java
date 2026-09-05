@@ -8,7 +8,7 @@ import java.util.Locale;
  * Represents a task that must be completed by a specific date and time.
  */
 public class Deadline extends Task {
-    private static final DateTimeFormatter DISPLAY_FORMAT = 
+    private static final DateTimeFormatter DISPLAY_FORMAT =
         DateTimeFormatter.ofPattern("MMM d yyy, h:mma", Locale.ENGLISH);
 
     protected LocalDateTime ddl;
@@ -29,7 +29,7 @@ public class Deadline extends Task {
      *
      * @return the deadline's date and time.
      */
-    public LocalDateTime getDDL() {
+    public LocalDateTime getDdl() {
         return this.ddl;
     }
 
@@ -41,6 +41,7 @@ public class Deadline extends Task {
      */
     @Override
     public String toString() {
-        return "[D][" + this.getStatusIcon() + "] " + this.description + "(by:" + this.ddl.format(DISPLAY_FORMAT) + ")";
+        return "[D][" + this.getStatusIcon() + "] " + this.description
+                + "(by:" + this.ddl.format(DISPLAY_FORMAT) + ")";
     }
 }
