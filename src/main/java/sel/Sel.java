@@ -43,6 +43,48 @@ public class Sel {
     }
 
     /**
+     * Processes a user command and returns Sel's response.
+     *
+     * @param input the raw command entered by the user.
+     * @return Sel's response to the command.
+     */
+    public String getResponse(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return "Bro, type something first :(";
+        }
+
+        String command = input.trim();
+        CommandType commandType = Parser.parseCommandType(command);
+
+        try {
+            switch (commandType) {
+            case BYE:
+                return "Bye see ya later alligator.";
+            case LIST:
+                return getTaskListResponse();
+            case MARK:
+                return getMarkResponse(command);
+            case UNMARK:
+                return getUnmarkResponse(command);
+            case DELETE:
+                return getDeleteResponse(command);
+            case TODO:
+                return getTodoResponse(command);
+            case DEADLINE:
+                return getDeadlineResponse(command);
+            case EVENT:
+                return getEventResponse(command);
+            case FIND:
+                return getFindResponse(command);
+            default:
+                return "Rephrase your words, no idea what u mean bro.";
+            }
+        } catch (SelException e) {
+            return e.getMessage();
+        }
+    }
+
+    /**
      * Runs the main command loop: greets the user, repeatedly reads and
      * handles commands until {@code bye} is entered or input ends, then
      * says goodbye.
@@ -225,6 +267,144 @@ public class Sel {
 
         List<Task> matches = tasks.find(keyword);
         ui.showMatchingTasks(matches);
+    }
+
+    private String getTaskListResponse() {
+        if (tasks.size() == 0) {
+            return "Your task list is empty bro.";
+        }
+
+        StringBuilder response = new StringBuilder(
+                "Bro why do you want to see the list??? anyway here it is:\n");
+
+        for (int i = 0; i < tasks.size(); i++) {
+            response.append(i + 1)
+                    .append(".")
+                    .append(tasks.get(i));
+
+            if (i < tasks.size() - 1) {
+                response.append("\n");
+            }
+        }
+
+        return response.toString();
+    }
+
+    private String getMarkResponse(String command) throws SelException {
+        int index = Parser.parseIndex(command, "mark",
+                "Bro, you need to tell me which task to mark :(",
+                "Bro, give me a valid task number :(");
+
+        if (!tasks.isValidIndex(index)) {
+            throw new SelException("Bro, that task doesn't exist :(");
+        }
+
+        tasks.mark(index);
+        storage.save(tasks.asList());
+
+        return "Marked task as done:\n" + tasks.get(index);
+    }
+
+    private String getUnmarkResponse(String command) throws SelException {
+        int index = Parser.parseIndex(command, "unmark",
+                "Bro, you need to tell me which task to unmark :(",
+                "Bro, give me a valid task number :(");
+
+        if (!tasks.isValidIndex(index)) {
+            throw new SelException("Bro, that task doesn't exist :(");
+        }
+
+        tasks.unmark(index);
+        storage.save(tasks.asList());
+
+        return "Unmarked task:\n" + tasks.get(index);
+    }
+
+    private String getDeleteResponse(String command) throws SelException {
+        int index = Parser.parseIndex(command, "delete",
+                "Bro, you need to tell me which task to delete :(",
+                "Bro, give me a valid task number :(");
+
+        if (!tasks.isValidIndex(index)) {
+            throw new SelException("Bro, that task doesn't exist :(");
+        }
+
+        Task deletedTask = tasks.delete(index);
+        storage.save(tasks.asList());
+
+        return "Yay! You have fewer tasks now!\n"
+                + deletedTask
+                + "\nNow "
+                + tasks.size()
+                + " task(s) on your list bruh...";
+    }
+
+    private String getTodoResponse(String command) throws SelException {
+        String description = Parser.parseSimpleArgument(command, "todo",
+                "Bro, you need to tell me what's the task :(");
+
+        Task task = new ToDo(description);
+        tasks.add(task);
+        storage.save(tasks.asList());
+
+        return getAddedTaskResponse(task);
+    }
+
+    private String getDeadlineResponse(String command) throws SelException {
+        String[] args = Parser.parseDeadlineArgs(command);
+        LocalDateTime ddl = Parser.parseDateTime(args[1]);
+
+        Task task = new Deadline(args[0], ddl);
+        tasks.add(task);
+        storage.save(tasks.asList());
+
+        return getAddedTaskResponse(task);
+    }
+
+    private String getEventResponse(String command) throws SelException {
+        String[] args = Parser.parseEventArgs(command);
+        LocalDateTime from = Parser.parseDateTime(args[1]);
+        LocalDateTime to = Parser.parseDateTime(args[2]);
+
+        Task task = new Event(args[0], from, to);
+        tasks.add(task);
+        storage.save(tasks.asList());
+
+        return getAddedTaskResponse(task);
+    }
+
+    private String getFindResponse(String command) throws SelException {
+        String keyword = Parser.parseSimpleArgument(command, "find",
+                "Bro, you need to tell me what to search for :(");
+
+        List<Task> matches = tasks.find(keyword);
+
+        if (matches.isEmpty()) {
+            return "Bro, nothing in your list matches that keyword :(";
+        }
+
+        StringBuilder response =
+                new StringBuilder("Here are the matching tasks in your list:\n");
+
+        for (int i = 0; i < matches.size(); i++) {
+            response.append(i + 1)
+                    .append(".")
+                    .append(matches.get(i));
+
+            if (i < matches.size() - 1) {
+                response.append("\n");
+            }
+        }
+
+        return response.toString();
+    }
+
+    private String getAddedTaskResponse(Task task) {
+        return "Why more work for you?!?!\n"
+                + task
+                + "\nNow "
+                + tasks.size()
+                + " task(s) on your list bruh...";
     }
 
     /**
