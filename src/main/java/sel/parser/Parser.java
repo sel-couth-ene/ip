@@ -17,30 +17,37 @@ public class Parser {
     private static final DateTimeFormatter INPUT_FORMAT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
 
+    /**
+     * Identifies the type of command the user typed, based on its first word.
+     *
+     * @param fullCommand the raw command line typed by the user.
+     * @return the matching {@link CommandType}, or {@code CommandType.UNKNOWN}
+     *     if the command word is not recognised.
+     */
     public static CommandType parseCommandType(String fullCommand) {
         String commandWord = fullCommand.trim().split("\\s+", 2)[0];
 
         switch (commandWord) {
-        case "bye":
-            return CommandType.BYE;
-        case "list":
-            return CommandType.LIST;
-        case "mark":
-            return CommandType.MARK;
-        case "unmark":
-            return CommandType.UNMARK;
-        case "delete":
-            return CommandType.DELETE;
-        case "todo":
-            return CommandType.TODO;
-        case "deadline":
-            return CommandType.DEADLINE;
-        case "event":
-            return CommandType.EVENT;
-        case "find":
-            return CommandType.FIND;
-        default:
-            return CommandType.UNKNOWN;
+            case "bye":
+                return CommandType.BYE;
+            case "list":
+                return CommandType.LIST;
+            case "mark":
+                return CommandType.MARK;
+            case "unmark":
+                return CommandType.UNMARK;
+            case "delete":
+                return CommandType.DELETE;
+            case "todo":
+                return CommandType.TODO;
+            case "deadline":
+                return CommandType.DEADLINE;
+            case "event":
+                return CommandType.EVENT;
+            case "find":
+                return CommandType.FIND;
+            default:
+                return CommandType.UNKNOWN;
         }
     }
 

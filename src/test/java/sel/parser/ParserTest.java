@@ -49,15 +49,15 @@ public class ParserTest {
 
     @Test
     public void parseIndex_missingArgument_throwsWithMissingArgMessage() {
-        SelException e = assertThrows(SelException.class,
-            () -> Parser.parseIndex("mark", "mark", "missing arg", "invalid number"));
+        SelException e = assertThrows(SelException.class, () ->
+            Parser.parseIndex("mark", "mark", "missing arg", "invalid number"));
         assertEquals("missing arg", e.getMessage());
     }
 
     @Test
     public void parseIndex_nonNumericArgument_throwsWithInvalidNumberMessage() {
-        SelException e = assertThrows(SelException.class,
-            () -> Parser.parseIndex("mark abc", "mark", "missing arg", "invalid number"));
+        SelException e = assertThrows(SelException.class, () ->
+            Parser.parseIndex("mark abc", "mark", "missing arg", "invalid number"));
         assertEquals("invalid number", e.getMessage());
     }
 
@@ -75,15 +75,15 @@ public class ParserTest {
 
     @Test
     public void parseSimpleArgument_commandWordOnly_throws() {
-        SelException e = assertThrows(SelException.class,
-            () -> Parser.parseSimpleArgument("todo", "todo", "empty task error"));
+        SelException e = assertThrows(SelException.class, () ->
+            Parser.parseSimpleArgument("todo", "todo", "empty task error"));
         assertEquals("empty task error", e.getMessage());
     }
 
     @Test
     public void parseSimpleArgument_onlyWhitespaceAfterCommandWord_throws() {
-        SelException e = assertThrows(SelException.class,
-            () -> Parser.parseSimpleArgument("todo    ", "todo", "empty task error"));
+        SelException e = assertThrows(SelException.class, () ->
+            Parser.parseSimpleArgument("todo    ", "todo", "empty task error"));
         assertEquals("empty task error", e.getMessage());
     }
 
@@ -124,32 +124,32 @@ public class ParserTest {
 
     @Test
     public void parseEventArgs_missingFromMarker_throws() {
-        assertThrows(SelException.class,
-            () -> Parser.parseEventArgs("event project meeting /to 2019-12-02 1600"));
+        assertThrows(SelException.class, () ->
+            Parser.parseEventArgs("event project meeting /to 2019-12-02 1600"));
     }
 
     @Test
     public void parseEventArgs_missingToMarker_throws() {
-        assertThrows(SelException.class,
-            () -> Parser.parseEventArgs("event project meeting /from 2019-12-02 1400"));
+        assertThrows(SelException.class, () ->
+            Parser.parseEventArgs("event project meeting /from 2019-12-02 1400"));
     }
 
     @Test
     public void parseEventArgs_emptyDescription_throws() {
-        assertThrows(SelException.class,
-            () -> Parser.parseEventArgs("event /from 2019-12-02 1400 /to 2019-12-02 1600"));
+        assertThrows(SelException.class, () ->
+            Parser.parseEventArgs("event /from 2019-12-02 1400 /to 2019-12-02 1600"));
     }
 
     @Test
     public void parseEventArgs_emptyFrom_throws() {
-        assertThrows(SelException.class,
-            () -> Parser.parseEventArgs("event meeting /from /to 2019-12-02 1600"));
+        assertThrows(SelException.class, () ->
+            Parser.parseEventArgs("event meeting /from /to 2019-12-02 1600"));
     }
 
     @Test
     public void parseEventArgs_emptyTo_throws() {
-        assertThrows(SelException.class,
-            () -> Parser.parseEventArgs("event meeting /from 2019-12-02 1400 /to"));
+        assertThrows(SelException.class, () ->
+            Parser.parseEventArgs("event meeting /from 2019-12-02 1400 /to"));
     }
 
     @Test

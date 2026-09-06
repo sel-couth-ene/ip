@@ -58,26 +58,26 @@ public class Sel {
 
         try {
             switch (commandType) {
-            case BYE:
-                return "Bye see ya later alligator.";
-            case LIST:
-                return getTaskListResponse();
-            case MARK:
-                return getMarkResponse(command);
-            case UNMARK:
-                return getUnmarkResponse(command);
-            case DELETE:
-                return getDeleteResponse(command);
-            case TODO:
-                return getTodoResponse(command);
-            case DEADLINE:
-                return getDeadlineResponse(command);
-            case EVENT:
-                return getEventResponse(command);
-            case FIND:
-                return getFindResponse(command);
-            default:
-                return "Rephrase your words, no idea what u mean bro.";
+                case BYE:
+                    return "Bye see ya later alligator.";
+                case LIST:
+                    return getTaskListResponse();
+                case MARK:
+                    return getMarkResponse(command);
+                case UNMARK:
+                    return getUnmarkResponse(command);
+                case DELETE:
+                    return getDeleteResponse(command);
+                case TODO:
+                    return getTodoResponse(command);
+                case DEADLINE:
+                    return getDeadlineResponse(command);
+                case EVENT:
+                    return getEventResponse(command);
+                case FIND:
+                    return getFindResponse(command);
+                default:
+                    return "Rephrase your words, no idea what u mean bro.";
             }
         } catch (SelException e) {
             return e.getMessage();
@@ -103,36 +103,36 @@ public class Sel {
 
             try {
                 switch (commandType) {
-                case BYE:
-                    ui.showGoodbye();
-                    isRunning = false;
-                    break;
-                case LIST:
-                    ui.showTaskList(tasks);
-                    break;
-                case MARK:
-                    handleMark(command);
-                    break;
-                case UNMARK:
-                    handleUnmark(command);
-                    break;
-                case DELETE:
-                    handleDelete(command);
-                    break;
-                case TODO:
-                    handleTodo(command);
-                    break;
-                case DEADLINE:
-                    handleDeadline(command);
-                    break;
-                case EVENT:
-                    handleEvent(command);
-                    break;
-                case FIND:
-                    handleFind(command);
-                    break;
-                default:
-                    ui.showError("Rephrase your words, no idea what u mean bro.");
+                    case BYE:
+                        ui.showGoodbye();
+                        isRunning = false;
+                        break;
+                    case LIST:
+                        ui.showTaskList(tasks);
+                        break;
+                    case MARK:
+                        handleMark(command);
+                        break;
+                    case UNMARK:
+                        handleUnmark(command);
+                        break;
+                    case DELETE:
+                        handleDelete(command);
+                        break;
+                    case TODO:
+                        handleTodo(command);
+                        break;
+                    case DEADLINE:
+                        handleDeadline(command);
+                        break;
+                    case EVENT:
+                        handleEvent(command);
+                        break;
+                    case FIND:
+                        handleFind(command);
+                        break;
+                    default:
+                        ui.showError("Rephrase your words, no idea what u mean bro.");
                 }
             } catch (SelException e) {
                 ui.showError(e.getMessage());

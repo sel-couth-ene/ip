@@ -22,7 +22,7 @@ public enum CommandType {
     /** Adds a new event task. */
     EVENT,
     /** Find */
-    FIND, 
+    FIND,
     /** Represents any input that does not match a known command. */
     UNKNOWN
 }
