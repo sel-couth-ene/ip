@@ -143,6 +143,27 @@ public class Sel {
     }
 
     /**
+     * Marks the task identified by the command and saves the updated task list.
+     *
+     * @param command the raw mark command.
+     * @return the task that was marked.
+     * @throws SelException if the task index is missing, invalid, or out of range.
+     */
+    private Task markTask(String command) throws SelException {
+        int index = Parser.parseIndex(command, "mark",
+                "Bro, you need to tell me which task to mark :(",
+                "Bro, give me a valid task number :(");
+
+        if (!tasks.isValidIndex(index)) {
+            throw new SelException("Bro, that task doesn't exist :(");
+        }
+
+        tasks.mark(index);
+        storage.save(tasks.asList());
+        return tasks.get(index);
+    }
+
+    /**
      * Handles a {@code mark} command: marks the referenced task as done,
      * persists the change, and shows confirmation.
      *
@@ -151,17 +172,8 @@ public class Sel {
      *     not refer to an existing task.
      */
     private void handleMark(String command) throws SelException {
-        int index = Parser.parseIndex(command, "mark",
-            "Bro, you need to tell me which task to mark :(",
-            "Bro, give me a valid task number :(");
-
-        if (!tasks.isValidIndex(index)) {
-            throw new SelException("Bro, that task doesn't exist :(");
-        }
-
-        tasks.mark(index);
-        storage.save(tasks.asList());
-        ui.showTaskMarked(tasks.get(index));
+        Task task = markTask(command);
+        ui.showTaskMarked(task);
     }
 
     /**
@@ -291,18 +303,8 @@ public class Sel {
     }
 
     private String getMarkResponse(String command) throws SelException {
-        int index = Parser.parseIndex(command, "mark",
-                "Bro, you need to tell me which task to mark :(",
-                "Bro, give me a valid task number :(");
-
-        if (!tasks.isValidIndex(index)) {
-            throw new SelException("Bro, that task doesn't exist :(");
-        }
-
-        tasks.mark(index);
-        storage.save(tasks.asList());
-
-        return "Marked task as done:\n" + tasks.get(index);
+        Task task = markTask(command);
+        return "Marked task as done:\n" + task;
     }
 
     private String getUnmarkResponse(String command) throws SelException {
