@@ -74,7 +74,7 @@ public class StorageTest {
 
         assertTrue(loaded.get(1) instanceof Deadline);
         assertFalse(loaded.get(1).isDone());
-        assertEquals(LocalDateTime.of(2019, 12, 2, 18, 0), ((Deadline) loaded.get(1)).getDDL());
+        assertEquals(LocalDateTime.of(2019, 12, 2, 18, 0), ((Deadline) loaded.get(1)).getDdl());
 
         assertTrue(loaded.get(2) instanceof Event);
         assertEquals(LocalDateTime.of(2019, 12, 2, 14, 0), ((Event) loaded.get(2)).getFrom());

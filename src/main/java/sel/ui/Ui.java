@@ -154,6 +154,12 @@ public class Ui {
             + LINE_BREAK);
     }
 
+    /**
+     * Shows the tasks whose descriptions matched a search keyword, or a
+     * message saying nothing matched if the list is empty.
+     *
+     * @param matches the tasks that matched the keyword.
+     */
     public void showMatchingTasks(List<Task> matches) {
         System.out.println(LINE_BREAK);
         if (matches.isEmpty()) {
