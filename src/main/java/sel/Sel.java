@@ -185,6 +185,27 @@ public class Sel {
     }
 
     /**
+     * Deletes the task identified by the command and saves the updated task list.
+     *
+     * @param command the raw delete command.
+     * @return the task that was deleted.
+     * @throws SelException if the task index is missing, invalid, or out of range.
+     */
+    private Task deleteTask(String command) throws SelException {
+        int index = Parser.parseIndex(command, "delete",
+                "Bro, you need to tell me which task to delete :(",
+                "Bro, give me a valid task number :(");
+
+        if (!tasks.isValidIndex(index)) {
+            throw new SelException("Bro, that task doesn't exist :(");
+        }
+
+        Task deletedTask = tasks.delete(index);
+        storage.save(tasks.asList());
+        return deletedTask;
+    }
+
+    /**
      * Handles a {@code mark} command: marks the referenced task as done,
      * persists the change, and shows confirmation.
      *
@@ -219,16 +240,7 @@ public class Sel {
      *     not refer to an existing task.
      */
     private void handleDelete(String command) throws SelException {
-        int index = Parser.parseIndex(command, "delete",
-            "Bro, you need to tell me which task to delete :(",
-            "Bro, give me a valid task number :(");
-
-        if (!tasks.isValidIndex(index)) {
-            throw new SelException("Bro, that task doesn't exist :(");
-        }
-
-        var deletedTask = tasks.delete(index);
-        storage.save(tasks.asList());
+        Task deletedTask = deleteTask(command);
         ui.showTaskDeleted(deletedTask, tasks.size());
     }
 
@@ -325,17 +337,7 @@ public class Sel {
     }
 
     private String getDeleteResponse(String command) throws SelException {
-        int index = Parser.parseIndex(command, "delete",
-                "Bro, you need to tell me which task to delete :(",
-                "Bro, give me a valid task number :(");
-
-        if (!tasks.isValidIndex(index)) {
-            throw new SelException("Bro, that task doesn't exist :(");
-        }
-
-        Task deletedTask = tasks.delete(index);
-        storage.save(tasks.asList());
-
+        Task deletedTask = deleteTask(command);
         return "Yay! You have fewer tasks now!\n"
                 + deletedTask
                 + "\nNow "
