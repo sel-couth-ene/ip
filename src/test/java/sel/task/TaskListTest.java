@@ -46,10 +46,10 @@ public class TaskListTest {
     }
 
     @Test
-    public void get_invalidIndex_throwsIndexOutOfBounds() {
+    public void get_invalidIndex_throwsAssertionError() {
         TaskList tasks = new TaskList();
         tasks.add(new ToDo("task 1"));
-        assertThrows(IndexOutOfBoundsException.class, () -> tasks.get(5));
+        assertThrows(AssertionError.class, () -> tasks.get(5));
     }
 
     @Test
@@ -68,9 +68,9 @@ public class TaskListTest {
     }
 
     @Test
-    public void delete_invalidIndex_throwsIndexOutOfBounds() {
+    public void delete_invalidIndex_throwsAssertionError() {
         TaskList tasks = new TaskList();
-        assertThrows(IndexOutOfBoundsException.class, () -> tasks.delete(0));
+        assertThrows(AssertionError.class, () -> tasks.delete(0));
     }
 
     @Test

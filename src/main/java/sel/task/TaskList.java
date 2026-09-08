@@ -39,9 +39,10 @@ public class TaskList {
      *
      * @param index the zero-based index of the task to remove.
      * @return the removed task.
-     * @throws IndexOutOfBoundsException if the index is out of range.
+     * @throws AssertionError if the index is invalid and assertions are enabled.
      */
     public Task delete(int index) {
+        assert isValidIndex(index) : "Task index must be valid!";
         return tasks.remove(index);
     }
 
@@ -50,9 +51,10 @@ public class TaskList {
      *
      * @param index the zero-based index of the task to retrieve.
      * @return the task at that index.
-     * @throws IndexOutOfBoundsException if the index is out of range.
+     * @throws AssertionError if the index is invalid and assertions are enabled.
      */
     public Task get(int index) {
+        assert isValidIndex(index) : "Task index must be valid!";
         return tasks.get(index);
     }
 
@@ -79,9 +81,10 @@ public class TaskList {
      * Marks the task at the given index as done.
      *
      * @param index the zero-based index of the task to mark.
-     * @throws IndexOutOfBoundsException if the index is out of range.
+     * @throws AssertionError if the index is invalid and assertions are enabled.
      */
     public void mark(int index) {
+        assert isValidIndex(index) : "Task index must be valid!";
         tasks.get(index).mark();
     }
 
@@ -89,9 +92,10 @@ public class TaskList {
      * Marks the task at the given index as not done.
      *
      * @param index the zero-based index of the task to unmark.
-     * @throws IndexOutOfBoundsException if the index is out of range.
+     * @throws AssertionError if the index is invalid and assertions are enabled.
      */
     public void unmark(int index) {
+        assert isValidIndex(index) : "Task index must be valid!";
         tasks.get(index).unmark();
     }
 
