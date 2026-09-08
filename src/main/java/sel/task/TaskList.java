@@ -114,13 +114,12 @@ public class TaskList {
      * @return a new list of matching tasks, in their original order.
      */
     public List<Task> find(String keyword) {
-        List<Task> matches = new ArrayList<>();
         String lowerKeyword = keyword.toLowerCase();
-        for (Task task : tasks) {
-            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
-                matches.add(task);
-            }
-        }
-        return matches;
+
+        return tasks.stream()
+                .filter(task -> task.getDescription()
+                        .toLowerCase()
+                        .contains(lowerKeyword))
+                .toList();
     }
 }
