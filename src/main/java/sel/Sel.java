@@ -164,6 +164,27 @@ public class Sel {
     }
 
     /**
+     * Unmarks the task identified by the command and saves the updated task list.
+     *
+     * @param command the raw unmark command.
+     * @return the task that was unmarked.
+     * @throws SelException if the task index is missing, invalid, or out of range.
+     */
+    private Task unmarkTask(String command) throws SelException {
+        int index = Parser.parseIndex(command, "unmark",
+                "Bro, you need to tell me which task to unmark :(",
+                "Bro, give me a valid task number :(");
+
+        if (!tasks.isValidIndex(index)) {
+            throw new SelException("Bro, that task doesn't exist :(");
+        }
+
+        tasks.unmark(index);
+        storage.save(tasks.asList());
+        return tasks.get(index);
+    }
+
+    /**
      * Handles a {@code mark} command: marks the referenced task as done,
      * persists the change, and shows confirmation.
      *
@@ -185,17 +206,8 @@ public class Sel {
      *     not refer to an existing task.
      */
     private void handleUnmark(String command) throws SelException {
-        int index = Parser.parseIndex(command, "unmark",
-            "Bro, you need to tell me which task to unmark :(",
-            "Bro, give me a valid task number :(");
-
-        if (!tasks.isValidIndex(index)) {
-            throw new SelException("Bro, that task doesn't exist :(");
-        }
-
-        tasks.unmark(index);
-        storage.save(tasks.asList());
-        ui.showTaskUnmarked(tasks.get(index));
+        Task task = unmarkTask(command);
+        ui.showTaskUnmarked(task);
     }
 
     /**
@@ -308,18 +320,8 @@ public class Sel {
     }
 
     private String getUnmarkResponse(String command) throws SelException {
-        int index = Parser.parseIndex(command, "unmark",
-                "Bro, you need to tell me which task to unmark :(",
-                "Bro, give me a valid task number :(");
-
-        if (!tasks.isValidIndex(index)) {
-            throw new SelException("Bro, that task doesn't exist :(");
-        }
-
-        tasks.unmark(index);
-        storage.save(tasks.asList());
-
-        return "Unmarked task:\n" + tasks.get(index);
+        Task task = unmarkTask(command);
+        return "Unmarked task:\n" + task;
     }
 
     private String getDeleteResponse(String command) throws SelException {
