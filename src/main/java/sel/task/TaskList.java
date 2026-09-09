@@ -1,6 +1,7 @@
 package sel.task;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -118,12 +119,13 @@ public class TaskList {
      * @return a new list of matching tasks, in their original order.
      */
     public List<Task> find(String keyword) {
-        String lowerKeyword = keyword.toLowerCase();
+        String[] keywords = keyword.toLowerCase().trim().split("\\s+");
 
         return tasks.stream()
-                .filter(task -> task.getDescription()
-                        .toLowerCase()
-                        .contains(lowerKeyword))
+                .filter(task -> {
+                    String description = task.getDescription().toLowerCase();
+                    return Arrays.stream(keywords).allMatch(description::contains);
+                })
                 .toList();
     }
 }
