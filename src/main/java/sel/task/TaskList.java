@@ -1,8 +1,8 @@
 package sel.task;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Represents the list of tasks currently tracked by the application,
@@ -123,8 +123,8 @@ public class TaskList {
 
         return tasks.stream()
                 .filter(task -> {
-                        String description = task.getDescription().toLowerCase();
-                        return Arrays.stream(keywords).allMatch(description::contains);
+                    String description = task.getDescription().toLowerCase();
+                    return Arrays.stream(keywords).allMatch(description::contains);
                 })
                 .toList();
     }
