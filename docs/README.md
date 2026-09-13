@@ -118,7 +118,7 @@ it back to you in a friendlier form, `Dec 2 2019, 6:00PM`.
 
 ## Features
 
-> [!NOTE]
+> **NOTE**
 > Command words are lowercase: `todo` works, `Todo` and `TODO` do not.
 > Extra spaces are harmless — `   todo    read    book   ` is understood as
 > `todo read book`, and the description is stored with single spaces.
@@ -251,7 +251,7 @@ If nothing matches, I will say so:
 Bro, nothing in your list matches that keyword :(
 ```
 
-> [!NOTE]
+> **NOTE**
 > The numbers in search results count the **matches**, not your whole list. To
 > mark or delete something you found, run `list` and use the number shown there.
 
