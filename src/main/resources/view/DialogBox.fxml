@@ -11,16 +11,15 @@
          xmlns="http://javafx.com/javafx/17"
          xmlns:fx="http://javafx.com/fxml/1">
     <children>
+        <!-- Pushes the bubble to the speaker's side of the window. -->
         <Region HBox.hgrow="ALWAYS" />
 
+        <!-- The bubble's look lives in style.css; its maximum width is
+             bound to the chat area in DialogBox.bindTextWidthTo so that
+             text re-wraps when the window is resized. -->
         <Label fx:id="dialog"
                wrapText="true"
-               maxWidth="340.0"
-               style="-fx-border-color: black;
-                      -fx-border-width: 1;
-                      -fx-border-radius: 4;
-                      -fx-background-radius: 4;
-                      -fx-padding: 8;" />
+               styleClass="dialog-bubble" />
 
         <ImageView fx:id="displayPicture"
                    fitHeight="50.0"

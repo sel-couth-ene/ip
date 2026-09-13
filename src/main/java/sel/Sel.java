@@ -45,12 +45,16 @@ public class Sel {
     /**
      * Processes a user command and returns Sel's response.
      *
+     * <p>The returned {@link Response} also records whether the command
+     * failed, so the GUI can highlight bad commands without having to
+     * guess from the message text.
+     *
      * @param input the raw command entered by the user.
      * @return Sel's response to the command.
      */
-    public String getResponse(String input) {
+    public Response getResponse(String input) {
         if (input == null || input.trim().isEmpty()) {
-            return "Bro, type something first :(";
+            return Response.ofError("Bro, type something first :(");
         }
 
         String command = input.trim();
@@ -59,28 +63,31 @@ public class Sel {
         try {
             switch (commandType) {
                 case BYE:
-                    return "Bye see ya later alligator.";
+                    return Response.of("Bye see ya later alligator.");
                 case LIST:
-                    return getTaskListResponse();
+                    return Response.of(getTaskListResponse());
                 case MARK:
-                    return getMarkResponse(command);
+                    return Response.of(getMarkResponse(command));
                 case UNMARK:
-                    return getUnmarkResponse(command);
+                    return Response.of(getUnmarkResponse(command));
                 case DELETE:
-                    return getDeleteResponse(command);
+                    return Response.of(getDeleteResponse(command));
                 case TODO:
-                    return getTodoResponse(command);
+                    return Response.of(getTodoResponse(command));
                 case DEADLINE:
-                    return getDeadlineResponse(command);
+                    return Response.of(getDeadlineResponse(command));
                 case EVENT:
-                    return getEventResponse(command);
+                    return Response.of(getEventResponse(command));
                 case FIND:
-                    return getFindResponse(command);
+                    return Response.of(getFindResponse(command));
                 default:
-                    return "Rephrase your words, no idea what u mean bro.";
+                    return Response.ofError(
+                            "Rephrase your words, no idea what u mean bro.");
             }
         } catch (SelException e) {
-            return e.getMessage();
+            // A command word Sel knows, but arguments it could not use
+            // (e.g. "todo" with no description) is also a wrong command.
+            return Response.ofError(e.getMessage());
         }
     }
 
