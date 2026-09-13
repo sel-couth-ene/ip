@@ -366,7 +366,9 @@ public class Parser {
         List<Integer> positions = new ArrayList<>();
         int searchFrom = 0;
 
-        while (searchFrom <= arguments.length()) {
+        // indexOf returns -1 once there is nothing left to find, which is
+        // what ends the loop; searchFrom can never run past the end.
+        while (true) {
             int index = arguments.indexOf(marker, searchFrom);
             if (index < 0) {
                 break;

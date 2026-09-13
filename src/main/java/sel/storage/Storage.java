@@ -370,6 +370,13 @@ public class Storage {
      * Splits a legacy single-field event time range (e.g. from an older
      * save format) into its from/to components.
      *
+     * <p>Only the {@code "FROM to TO"} form is recognised. A dash-separated
+     * form used to be accepted here as well, but it split on the last dash
+     * in the text, and every stored date contains dashes of its own
+     * ({@code 2019-12-02T16:00}), so the right-hand half was always a
+     * fragment like {@code 02T16:00} that could never be parsed. The branch
+     * could only ever end in the line being skipped, so it is gone.
+     *
      * @param timeRange the combined time range string.
      * @return a two-element array of {@code {from, to}} strings.
      * @throws IllegalArgumentException if the range cannot be split into
@@ -379,16 +386,7 @@ public class Storage {
         int toIndex = timeRange.indexOf(" to ");
         if (toIndex >= 0) {
             String from = timeRange.substring(0, toIndex).trim();
-            String to = timeRange.substring(toIndex + 4).trim();
-            if (!from.isEmpty() && !to.isEmpty()) {
-                return new String[] {from, to};
-            }
-        }
-
-        int dashIndex = timeRange.lastIndexOf('-');
-        if (dashIndex > 0 && dashIndex < timeRange.length() - 1) {
-            String from = timeRange.substring(0, dashIndex).trim();
-            String to = timeRange.substring(dashIndex + 1).trim();
+            String to = timeRange.substring(toIndex + " to ".length()).trim();
             if (!from.isEmpty() && !to.isEmpty()) {
                 return new String[] {from, to};
             }

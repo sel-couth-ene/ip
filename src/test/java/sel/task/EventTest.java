@@ -82,12 +82,14 @@ public class EventTest {
         LocalDateTime from = LocalDateTime.of(2019, 12, 2, 14, 0);
         LocalDateTime to = LocalDateTime.of(2019, 12, 2, 16, 0);
         LocalDateTime laterTo = LocalDateTime.of(2019, 12, 2, 17, 0);
+        LocalDateTime earlierFrom = LocalDateTime.of(2019, 12, 2, 13, 0);
 
         Event event = new Event("meeting", from, to);
 
         assertTrue(event.hasSameDetailsAs(new Event("meeting", from, to)));
         assertTrue(event.hasSameDetailsAs(new Event("MEETING", from, to)));
         assertFalse(event.hasSameDetailsAs(new Event("meeting", from, laterTo)));
+        assertFalse(event.hasSameDetailsAs(new Event("meeting", earlierFrom, to)));
         assertFalse(event.hasSameDetailsAs(new Event("other", from, to)));
         assertFalse(event.hasSameDetailsAs(new ToDo("meeting")));
         assertFalse(event.hasSameDetailsAs(null));

@@ -346,4 +346,47 @@ public class ParserTest {
         assertEquals(LocalDateTime.of(2019, 12, 2, 18, 0),
             Parser.parseDateTime("2019-12-02    1800"));
     }
+
+    @Test
+    public void parseEventArgs_bareCommandWord_throws() {
+        assertThrows(SelException.class, () -> Parser.parseEventArgs("event"));
+    }
+
+    @Test
+    public void parseMarkers_notPrecededBySpace_areNotTreatedAsMarkers() {
+        // "pay/by" is one word, so the /by in it is part of the description
+        // rather than the marker that introduces the due date.
+        assertThrows(SelException.class, () ->
+            Parser.parseDeadlineArgs("deadline pay/by 2019-12-02 1800"));
+        assertThrows(SelException.class, () ->
+            Parser.parseEventArgs("event trip/from 2019-12-02 1400 /to 2019-12-02 1600"));
+    }
+
+    @Test
+    public void parseDeadlineArgs_onlyToMarkerUsed_explainsTheMixUp() {
+        SelException e = assertThrows(SelException.class, () ->
+            Parser.parseDeadlineArgs("deadline x /to 2019-12-02 1800"));
+        assertTrue(e.getMessage().contains("/by"));
+    }
+
+    @Test
+    public void parseIndex_commandWordNotAtTheFront_stillReportsRatherThanCrashing() {
+        // Defensive: parseCommandType matches the command word before these
+        // methods are called, so this should not happen. It must report an
+        // error rather than throw StringIndexOutOfBoundsException.
+        assertThrows(SelException.class, () ->
+            Parser.parseIndex("oops 3", "mark", "missing", "invalid"));
+    }
+
+    @Test
+    public void parseDescription_validDescription_isReturnedUnchanged() throws SelException {
+        assertEquals("read book", Parser.parseDescription("todo read book", "todo", "error"));
+    }
+
+    @Test
+    public void parseDescription_missingDescription_throwsWithTheGivenMessage() {
+        SelException e = assertThrows(SelException.class, () ->
+            Parser.parseDescription("todo", "todo", "empty task error"));
+        assertEquals("empty task error", e.getMessage());
+    }
 }

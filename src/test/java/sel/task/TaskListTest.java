@@ -158,4 +158,118 @@ public class TaskListTest {
     public void findDuplicateOf_emptyList_returnsEmpty() {
         assertTrue(new TaskList().findDuplicateOf(new ToDo("read book")).isEmpty());
     }
+
+    // ---------- searching ----------
+
+    @Test
+    public void find_returnsTasksWhoseDescriptionContainsTheKeyword() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+        tasks.add(new ToDo("wash car"));
+        tasks.add(new ToDo("return book"));
+
+        List<Task> matches = tasks.find("book");
+
+        assertEquals(2, matches.size());
+        assertEquals("read book", matches.get(0).getDescription());
+        assertEquals("return book", matches.get(1).getDescription());
+    }
+
+    @Test
+    public void find_ignoresCaseOnBothSides() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("Read BOOK"));
+
+        assertEquals(1, tasks.find("book").size());
+        assertEquals(1, tasks.find("BOOK").size());
+        assertEquals(1, tasks.find("rEaD").size());
+    }
+
+    @Test
+    public void find_matchesPartOfAWord() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+
+        assertEquals(1, tasks.find("oo").size());
+    }
+
+    @Test
+    public void find_severalKeywords_requiresAllOfThem() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+        tasks.add(new ToDo("read magazine"));
+
+        assertEquals(1, tasks.find("read book").size());
+        assertEquals(2, tasks.find("read").size());
+        // The keywords need not be adjacent or in order.
+        assertEquals(1, tasks.find("book read").size());
+        assertEquals(0, tasks.find("read newspaper").size());
+    }
+
+    @Test
+    public void find_keywordsSeparatedByExtraSpaces_stillMatch() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+
+        assertEquals(1, tasks.find("  read    book  ").size());
+    }
+
+    @Test
+    public void find_noMatch_returnsEmptyList() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+
+        assertTrue(tasks.find("bicycle").isEmpty());
+    }
+
+    @Test
+    public void find_emptyList_returnsEmptyList() {
+        assertTrue(new TaskList().find("book").isEmpty());
+    }
+
+    @Test
+    public void find_keepsTheOriginalListOrder() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("book three"));
+        tasks.add(new ToDo("book one"));
+        tasks.add(new ToDo("book two"));
+
+        List<Task> matches = tasks.find("book");
+
+        assertEquals("book three", matches.get(0).getDescription());
+        assertEquals("book one", matches.get(1).getDescription());
+        assertEquals("book two", matches.get(2).getDescription());
+    }
+
+    @Test
+    public void find_blankKeyword_matchesEverything() {
+        // Documents current behaviour: every description contains the empty
+        // string. Sel rejects a blank keyword before it ever gets here, so
+        // this only matters to direct callers.
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+        tasks.add(new ToDo("wash car"));
+
+        assertEquals(2, tasks.find("").size());
+    }
+
+    // ---------- guarding against bad indices ----------
+
+    @Test
+    public void mark_invalidIndex_throwsAssertionError() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+
+        assertThrows(AssertionError.class, () -> tasks.mark(1));
+        assertThrows(AssertionError.class, () -> tasks.mark(-1));
+    }
+
+    @Test
+    public void unmark_invalidIndex_throwsAssertionError() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+
+        assertThrows(AssertionError.class, () -> tasks.unmark(1));
+        assertThrows(AssertionError.class, () -> tasks.unmark(-1));
+    }
 }
