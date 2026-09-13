@@ -28,6 +28,22 @@ public class MainWindow {
     /** Label of the toggle button while the command panel is open. */
     private static final String HELP_OPEN_LABEL = "v  help";
 
+    /**
+     * First message shown in the chat: who Sel is, what Sel is for, and
+     * where to find the command list. It is kept here rather than in
+     * {@link sel.ui.Ui} because it points at a button that only the GUI
+     * has; the command-line greeting stays in {@code Ui.showWelcome}.
+     */
+    private static final String WELCOME_MESSAGE =
+            "Sup, I'm Sel.\n\n"
+            + "I keep your task list in order so you don't have to. \n\nTell me "
+            + "about your todos, your deadlines and your events, and I'll "
+            + "track them: mark them done, unmark them, delete them, or "
+            + "search them by keyword. Everything is saved to disk, so your "
+            + "list is still here the next time you open me.\n\n"
+            + "No idea what to type? Hit the '^ help' button at the bottom "
+            + "left and I'll show you every command I understand.";
+
     @FXML
     private ScrollPane scrollPane;
 
@@ -102,7 +118,7 @@ public class MainWindow {
     public void setSel(Sel sel) {
         this.sel = sel;
         addDialogs(
-                DialogBox.getSelDialog("Sup, I'm Sel.", selImage));
+                DialogBox.getSelDialog(WELCOME_MESSAGE, selImage));
     }
 
     /**
