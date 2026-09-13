@@ -135,4 +135,27 @@ public class TaskListTest {
         tasks.add(new ToDo("task 2"));
         assertEquals(2, snapshot.size(), "asList() should expose the live underlying list");
     }
+
+    @Test
+    public void findDuplicateOf_matchingTask_returnsTheExistingOne() {
+        TaskList tasks = new TaskList();
+        ToDo existing = new ToDo("read book");
+        tasks.add(existing);
+
+        assertSame(existing, tasks.findDuplicateOf(new ToDo("read book")).orElseThrow());
+        assertSame(existing, tasks.findDuplicateOf(new ToDo("Read Book")).orElseThrow());
+    }
+
+    @Test
+    public void findDuplicateOf_noMatch_returnsEmpty() {
+        TaskList tasks = new TaskList();
+        tasks.add(new ToDo("read book"));
+
+        assertTrue(tasks.findDuplicateOf(new ToDo("read magazine")).isEmpty());
+    }
+
+    @Test
+    public void findDuplicateOf_emptyList_returnsEmpty() {
+        assertTrue(new TaskList().findDuplicateOf(new ToDo("read book")).isEmpty());
+    }
 }

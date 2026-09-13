@@ -2,6 +2,7 @@ package sel.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -19,7 +20,6 @@ import sel.task.Deadline;
 import sel.task.Event;
 import sel.task.Task;
 import sel.task.ToDo;
-import sel.ui.Ui;
 
 public class StorageTest {
 
@@ -91,15 +91,14 @@ public class StorageTest {
             "T | 0 | join sports club"
         ));
 
-        CountingUi ui = new CountingUi();
-        Storage storage = new Storage(file.toString(), ui);
+        Storage storage = new Storage(file.toString());
 
         List<Task> loaded = storage.load();
 
         assertEquals(2, loaded.size());
         assertEquals("read book", loaded.get(0).getDescription());
         assertEquals("join sports club", loaded.get(1).getDescription());
-        assertEquals(1, ui.corruptedLineWarnings);
+        assertEquals(1, storage.getLoadWarnings().size());
     }
 
     @Test
@@ -148,12 +147,113 @@ public class StorageTest {
         assertTrue(loaded.isEmpty());
     }
 
-    private static class CountingUi extends Ui {
-        private int corruptedLineWarnings = 0;
+    @Test
+    public void load_duplicateLines_keepsOnlyTheFirstAndWarns() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of(
+            "T | 0 | read book",
+            "T | 1 | READ BOOK",
+            "T | 0 | join sports club"));
 
-        @Override
-        public void showCorruptedLineWarning(int lineNumber) {
-            corruptedLineWarnings++;
+        Storage storage = new Storage(file.toString());
+        List<Task> loaded = storage.load();
+
+        assertEquals(2, loaded.size());
+        assertEquals("read book", loaded.get(0).getDescription());
+        assertEquals(1, storage.getLoadWarnings().size());
+    }
+
+    @Test
+    public void load_eventEndingBeforeItStarts_isSkippedAndOtherLinesSurvive()
+            throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of(
+            "E | 0 | backwards | 2019-12-02T16:00 | 2019-12-02T14:00",
+            "T | 0 | survivor"));
+
+        Storage storage = new Storage(file.toString());
+        List<Task> loaded = storage.load();
+
+        assertEquals(1, loaded.size());
+        assertEquals("survivor", loaded.get(0).getDescription());
+        assertEquals(1, storage.getLoadWarnings().size());
+    }
+
+    @Test
+    public void load_separatorInsideStoredDescription_isReadBackWhole()
+            throws IOException, SelException {
+        // A file written by an older version, or edited by hand, may hold a
+        // description containing the field separator. It should come back in
+        // one piece rather than being dropped as unparseable.
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of(
+            "T | 0 | tea | coffee",
+            "D | 0 | a | b | 2019-12-02T18:00",
+            "E | 0 | x | y | 2019-12-02T14:00 | 2019-12-02T16:00"));
+
+        Storage storage = new Storage(file.toString());
+        List<Task> loaded = storage.load();
+
+        assertEquals(3, loaded.size());
+        assertEquals("tea | coffee", loaded.get(0).getDescription());
+        assertEquals("a | b", loaded.get(1).getDescription());
+        assertEquals("x | y", loaded.get(2).getDescription());
+        assertTrue(storage.getLoadWarnings().isEmpty());
+    }
+
+    @Test
+    public void load_pathIsADirectory_throwsWithAClearMessage() throws IOException {
+        Path directory = tempDir.resolve("iam-a-dir");
+        Files.createDirectories(directory);
+
+        Storage storage = new Storage(directory.toString());
+
+        SelException e = assertThrows(SelException.class, storage::load);
+        assertTrue(e.getMessage().contains("folder"));
+    }
+
+    @Test
+    public void load_cleanFile_reportsNoWarnings() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("T | 0 | read book"));
+
+        Storage storage = new Storage(file.toString());
+        storage.load();
+
+        assertTrue(storage.getLoadWarnings().isEmpty());
+    }
+
+    @Test
+    public void save_failing_leavesThePreviousFileIntactAndThrows() throws IOException, SelException {
+        Path directory = tempDir.resolve("locked");
+        Files.createDirectories(directory);
+        Path file = directory.resolve("sel.txt");
+
+        Storage storage = new Storage(file.toString());
+        storage.save(List.of(new ToDo("original task")));
+
+        // Making the directory read-only stops both the temporary file and
+        // the move, which is what a denied-permission save looks like.
+        assertTrue(directory.toFile().setWritable(false), "could not make the directory read-only");
+        try {
+            assertThrows(SelException.class, () -> storage.save(List.of(new ToDo("new task"))));
+
+            assertEquals(List.of("T | 0 | original task"), Files.readAllLines(file));
+        } finally {
+            directory.toFile().setWritable(true);
+        }
+    }
+
+    @Test
+    public void save_leavesNoTemporaryFilesBehind() throws SelException, IOException {
+        Path file = tempDir.resolve("sel.txt");
+        Storage storage = new Storage(file.toString());
+
+        storage.save(List.of(new ToDo("read book")));
+
+        try (var entries = Files.list(tempDir)) {
+            assertEquals(List.of("sel.txt"),
+                entries.map(path -> path.getFileName().toString()).sorted().toList());
         }
     }
 }

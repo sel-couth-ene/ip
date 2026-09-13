@@ -53,4 +53,28 @@ public class TaskTest {
         Task task = new Task("read book");
         assertEquals("read book", task.toString());
     }
+
+    @Test
+    public void hasSameDetailsAs_comparesTypeAndDescriptionIgnoringCase() {
+        ToDo todo = new ToDo("read book");
+
+        assertTrue(todo.hasSameDetailsAs(new ToDo("read book")));
+        assertTrue(todo.hasSameDetailsAs(new ToDo("READ BOOK")));
+        assertFalse(todo.hasSameDetailsAs(new ToDo("read magazine")));
+        assertFalse(todo.hasSameDetailsAs(null));
+    }
+
+    @Test
+    public void hasSameDetailsAs_differentTypesNeverMatch() {
+        // A plain Task and a ToDo can share a description without being
+        // the same task, so the class has to be part of the comparison.
+        assertFalse(new Task("read book").hasSameDetailsAs(new ToDo("read book")));
+    }
+
+    @Test
+    public void hasSameDetailsAs_ignoresDoneStatus() {
+        ToDo done = new ToDo("read book");
+        done.mark();
+        assertTrue(done.hasSameDetailsAs(new ToDo("read book")));
+    }
 }

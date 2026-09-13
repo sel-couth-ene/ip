@@ -117,8 +117,13 @@ public class MainWindow {
      */
     public void setSel(Sel sel) {
         this.sel = sel;
-        addDialogs(
-                DialogBox.getSelDialog(WELCOME_MESSAGE, selImage));
+        addDialogs(DialogBox.getSelDialog(WELCOME_MESSAGE, selImage));
+
+        // Problems with the save file used to be printed to the terminal,
+        // where a GUI user would never see them. Show them in the chat as
+        // an error instead, so a lost or unreadable save file is obvious.
+        sel.getStartupWarning().ifPresent(warning ->
+                addDialogs(DialogBox.getSelErrorDialog(warning, selImage)));
     }
 
     /**

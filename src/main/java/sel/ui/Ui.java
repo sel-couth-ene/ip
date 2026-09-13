@@ -52,29 +52,10 @@ public class Ui {
             + LINE_BREAK);
     }
 
-    /** Prints a warning that saved tasks could not be loaded. */
-    public void showLoadingError() {
-        System.out.println("WARNING: failed to load tasks from disk.");
-    }
-
-    /**
-     * Prints a warning that a specific line in the save file was corrupted
-     * and had to be skipped.
-     *
-     * @param lineNumber the 1-based line number of the corrupted line.
-     */
-    public void showCorruptedLineWarning(int lineNumber) {
-        System.out.println("WARNING: skipped corrupted data on line " + lineNumber + ".");
-    }
-
-    /** Prints a warning that tasks could not be saved to disk. */
-    public void showSavingError() {
-        System.out.println("WARNING: failed to save tasks to disk.");
-    }
-
     /**
      * Prints an error message, wrapped the same way {@link SelException}
-     * prints.
+     * prints. Used for everything the user should see go wrong, including
+     * problems with the save file.
      *
      * @param message the error message to display.
      */
