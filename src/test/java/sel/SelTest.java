@@ -3,6 +3,7 @@ package sel;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -227,7 +228,12 @@ public class SelTest {
         Files.createDirectories(directory);
         Sel sel = new Sel(directory.resolve("sel.txt").toString());
 
-        assertTrue(directory.toFile().setWritable(false), "could not make the directory read-only");
+        // Windows ignores the read-only attribute on directories, so this
+        // check is skipped rather than failed where it cannot be set up.
+        // save_parentPathIsNotADirectory_throws covers the same reporting
+        // path on every OS.
+        assumeTrue(directory.toFile().setWritable(false),
+            "this OS does not support making a directory read-only");
         try {
             Response response = sel.getResponse("todo read book");
 
@@ -248,5 +254,29 @@ public class SelTest {
         String list = sel.getResponse("list").text();
 
         assertEquals(3, list.lines().filter(line -> line.matches("^\\d+\\..*")).count());
+    }
+
+    @Test
+    public void getResponse_whenTheSaveFileCannotBeWritten_reportsTheProblem() throws IOException {
+        // The save file's parent is a regular file, so nothing can be
+        // written there. This sets up a save failure on every OS.
+        Path blocker = tempDir.resolve("blocker");
+        Files.write(blocker, List.of("i am a file, not a folder"));
+        Sel sel = new Sel(blocker.resolve("sel.txt").toString());
+
+        Response response = sel.getResponse("todo read book");
+
+        assertTrue(response.isError());
+        assertTrue(response.text().contains("save"));
+    }
+
+    @Test
+    public void startupWarning_whenTheSaveFileCannotBeRead_isReported() throws IOException {
+        Path blocker = tempDir.resolve("blocker");
+        Files.write(blocker, List.of("i am a file, not a folder"));
+
+        Sel sel = new Sel(blocker.resolve("sel.txt").toString());
+
+        assertTrue(sel.getStartupWarning().isPresent());
     }
 }

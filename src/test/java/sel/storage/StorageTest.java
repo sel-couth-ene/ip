@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -234,7 +235,10 @@ public class StorageTest {
 
         // Making the directory read-only stops both the temporary file and
         // the move, which is what a denied-permission save looks like.
-        assertTrue(directory.toFile().setWritable(false), "could not make the directory read-only");
+        // Windows ignores the read-only attribute on directories, so this
+        // check is skipped rather than failed where it cannot be set up.
+        assumeTrue(directory.toFile().setWritable(false),
+            "this OS does not support making a directory read-only");
         try {
             assertThrows(SelException.class, () -> storage.save(List.of(new ToDo("new task"))));
 
@@ -255,5 +259,28 @@ public class StorageTest {
             assertEquals(List.of("sel.txt"),
                 entries.map(path -> path.getFileName().toString()).sorted().toList());
         }
+    }
+
+    @Test
+    public void save_parentPathIsNotADirectory_throws() throws IOException {
+        // A regular file where a directory is expected cannot be created
+        // into. Unlike the permission test above, this failure can be set
+        // up on every OS.
+        Path blocker = tempDir.resolve("blocker");
+        Files.write(blocker, List.of("i am a file, not a folder"));
+
+        Storage storage = new Storage(blocker.resolve("sel.txt").toString());
+
+        assertThrows(SelException.class, () -> storage.save(List.of(new ToDo("read book"))));
+    }
+
+    @Test
+    public void load_parentPathIsNotADirectory_throws() throws IOException {
+        Path blocker = tempDir.resolve("blocker");
+        Files.write(blocker, List.of("i am a file, not a folder"));
+
+        Storage storage = new Storage(blocker.resolve("sel.txt").toString());
+
+        assertThrows(SelException.class, storage::load);
     }
 }
