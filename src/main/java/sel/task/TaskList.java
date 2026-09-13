@@ -3,6 +3,7 @@ package sel.task;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -134,11 +135,15 @@ public class TaskList {
      * @return a new list of matching tasks, in their original order.
      */
     public List<Task> find(String keyword) {
-        String[] keywords = keyword.toLowerCase().trim().split("\\s+");
+        // Locale.ROOT, not the machine's locale: a plain toLowerCase() uses
+        // the default locale, and in Turkish or Azerbaijani that turns "I"
+        // into the dotless "\u0131". Searching "bike" would then never match a
+        // task called "BIKE ride" for those users.
+        String[] keywords = keyword.toLowerCase(Locale.ROOT).trim().split("\\s+");
 
         return tasks.stream()
                 .filter(task -> {
-                    String description = task.getDescription().toLowerCase();
+                    String description = task.getDescription().toLowerCase(Locale.ROOT);
                     return Arrays.stream(keywords).allMatch(description::contains);
                 })
                 .toList();

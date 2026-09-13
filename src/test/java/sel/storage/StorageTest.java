@@ -283,4 +283,222 @@ public class StorageTest {
 
         assertThrows(SelException.class, storage::load);
     }
+
+    // ---------- malformed lines, one cause at a time ----------
+
+    @Test
+    public void load_tooFewFields_isSkipped() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("T | 0", "T | 0 | survivor"));
+
+        Storage storage = new Storage(file.toString());
+        List<Task> loaded = storage.load();
+
+        assertEquals(1, loaded.size());
+        assertEquals(1, storage.getLoadWarnings().size());
+        assertTrue(storage.getLoadWarnings().get(0).contains("line 1"));
+    }
+
+    @Test
+    public void load_unknownTaskType_isSkipped() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("Z | 0 | mystery task"));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertTrue(storage.getLoadWarnings().get(0).contains("task type"));
+    }
+
+    @Test
+    public void load_blankDescription_isSkippedForEveryTaskType() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of(
+            "T | 0 |   ",
+            "D | 0 |   | 2019-12-02T18:00",
+            "E | 0 |   | 2019-12-02T14:00 | 2019-12-02T16:00"));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(3, storage.getLoadWarnings().size());
+    }
+
+    @Test
+    public void load_deadlineWithNoDate_isSkipped() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("D | 0 | pay bill", "D | 0 | pay rent | "));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(2, storage.getLoadWarnings().size());
+    }
+
+    @Test
+    public void load_unparseableStoredDate_isSkipped() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("D | 0 | pay bill | not-a-date"));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertTrue(storage.getLoadWarnings().get(0).contains("stored date/time"));
+    }
+
+    @Test
+    public void load_eventMissingOneOfItsDates_isSkipped() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of(
+            "E | 0 | meeting |  | 2019-12-02T16:00",
+            "E | 0 | meeting | 2019-12-02T14:00 | "));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(2, storage.getLoadWarnings().size());
+    }
+
+    @Test
+    public void load_statusFlagMarksTheTaskAsDone() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("T | 1 | done task", "T | 0 | undone task"));
+
+        List<Task> loaded = new Storage(file.toString()).load();
+
+        assertTrue(loaded.get(0).isDone());
+        assertFalse(loaded.get(1).isDone());
+    }
+
+    // ---------- the older save format ----------
+
+    @Test
+    public void load_legacyEventRangeWrittenWithTo_isUnderstood() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("E | 0 | old event | 2019-12-02T14:00 to 2019-12-02T16:00"));
+
+        List<Task> loaded = new Storage(file.toString()).load();
+
+        assertEquals(1, loaded.size());
+        assertEquals(LocalDateTime.of(2019, 12, 2, 14, 0), ((Event) loaded.get(0)).getFrom());
+        assertEquals(LocalDateTime.of(2019, 12, 2, 16, 0), ((Event) loaded.get(0)).getTo());
+    }
+
+    @Test
+    public void load_legacyEventRangeWrittenWithADash_isSkipped() throws IOException, SelException {
+        // Only the "FROM to TO" form is understood. A dash cannot separate
+        // two stored dates unambiguously, because the dates contain dashes.
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("E | 0 | old event | 2019-12-02T14:00-2019-12-02T16:00"));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getLoadWarnings().size());
+    }
+
+    @Test
+    public void load_legacyEventRangeThatCannotBeSplit_isSkipped() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("E | 0 | old event | sometime next week"));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getLoadWarnings().size());
+    }
+
+    @Test
+    public void load_legacyEventRangeWithoutASurroundedTo_isSkipped() throws IOException, SelException {
+        // The separator has to be " to " with a space on each side. Here the
+        // spaces sit against the field separator, which strips them, so
+        // there is nothing to split on.
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of(
+            "E | 0 | a |  to 2019-12-02T16:00",
+            "E | 0 | b | 2019-12-02T14:00 to "));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(2, storage.getLoadWarnings().size());
+    }
+
+    // ---------- reporting ----------
+
+    @Test
+    public void getLoadWarnings_cannotBeModifiedByCallers() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("Z | 0 | mystery"));
+
+        Storage storage = new Storage(file.toString());
+        storage.load();
+
+        assertThrows(UnsupportedOperationException.class, () ->
+            storage.getLoadWarnings().add("not allowed"));
+    }
+
+    @Test
+    public void getLoadWarnings_areClearedByTheNextLoad() throws IOException, SelException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("Z | 0 | mystery"));
+        Storage storage = new Storage(file.toString());
+        storage.load();
+        assertFalse(storage.getLoadWarnings().isEmpty());
+
+        Files.write(file, List.of("T | 0 | read book"));
+        storage.load();
+
+        assertTrue(storage.getLoadWarnings().isEmpty());
+    }
+
+    @Test
+    public void load_unreadableFile_throws() throws IOException {
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("T | 0 | read book"));
+
+        // Windows ignores the read-only attribute for reading, so this is
+        // skipped rather than failed where it cannot be set up.
+        assumeTrue(file.toFile().setReadable(false) && !Files.isReadable(file),
+            "this OS does not support making a file unreadable");
+        try {
+            assertThrows(SelException.class, () -> new Storage(file.toString()).load());
+        } finally {
+            file.toFile().setReadable(true);
+        }
+    }
+
+    // ---------- failing part way through a save ----------
+
+    @Test
+    public void save_targetPathIsANonEmptyDirectory_throwsAndCleansUpItsTempFile()
+            throws IOException {
+        // The temporary file is written successfully and only the final
+        // move fails, which is the one path that has a temp file to tidy up.
+        Path target = tempDir.resolve("sel.txt");
+        Files.createDirectories(target);
+        Files.write(target.resolve("blocker"), List.of("makes the directory non-empty"));
+
+        Storage storage = new Storage(target.toString());
+
+        assertThrows(SelException.class, () -> storage.save(List.of(new ToDo("read book"))));
+
+        try (var entries = Files.list(tempDir)) {
+            assertEquals(List.of("sel.txt"),
+                entries.map(path -> path.getFileName().toString()).sorted().toList());
+        }
+    }
+
+    @Test
+    public void load_eventWithAnEmptyFourthField_isSkipped() throws IOException, SelException {
+        // Four fields with nothing in the last one is neither the current
+        // five-field format nor the older packed-range one.
+        Path file = tempDir.resolve("sel.txt");
+        Files.write(file, List.of("E | 0 | meeting | "));
+
+        Storage storage = new Storage(file.toString());
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getLoadWarnings().size());
+    }
 }

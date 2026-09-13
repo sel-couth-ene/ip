@@ -279,4 +279,99 @@ public class SelTest {
 
         assertTrue(sel.getStartupWarning().isPresent());
     }
+
+    // ---------- the commands that succeed ----------
+
+    @Test
+    public void getResponse_delete_removesTheTaskAndReportsTheNewCount() {
+        Sel sel = newSel();
+        sel.getResponse("todo read book");
+        sel.getResponse("todo join sports club");
+
+        Response response = sel.getResponse("delete 1");
+
+        assertFalse(response.isError());
+        assertTrue(response.text().contains("read book"));
+        assertTrue(response.text().contains("1 task(s)"));
+        assertFalse(sel.getResponse("list").text().contains("read book"));
+    }
+
+    @Test
+    public void getResponse_find_listsOnlyTheMatchesNumberedFromOne() {
+        Sel sel = newSel();
+        sel.getResponse("todo read book");
+        sel.getResponse("todo wash car");
+        sel.getResponse("todo return book");
+
+        Response response = sel.getResponse("find book");
+
+        assertFalse(response.isError());
+        assertTrue(response.text().contains("1.[T][ ] read book"), response.text());
+        assertTrue(response.text().contains("2.[T][ ] return book"), response.text());
+        assertFalse(response.text().contains("wash car"), response.text());
+    }
+
+    @Test
+    public void getResponse_findWithNoMatches_saysSoWithoutBeingAnError() {
+        Sel sel = newSel();
+        sel.getResponse("todo read book");
+
+        Response response = sel.getResponse("find bicycle");
+
+        assertFalse(response.isError());
+        assertTrue(response.text().contains("nothing in your list matches"));
+    }
+
+    @Test
+    public void getResponse_unmarkAfterMark_succeeds() {
+        Sel sel = newSel();
+        sel.getResponse("todo read book");
+        sel.getResponse("mark 1");
+
+        Response response = sel.getResponse("unmark 1");
+
+        assertFalse(response.isError());
+        assertTrue(sel.getResponse("list").text().contains("[T][ ] read book"));
+    }
+
+    @Test
+    public void getResponse_emptyList_saysSoRatherThanShowingNothing() {
+        assertEquals("Your task list is empty bro.", newSel().getResponse("list").text());
+    }
+
+    @Test
+    public void getResponse_bye_isNotAnError() {
+        assertFalse(newSel().getResponse("bye").isError());
+    }
+
+    // ---------- wording of the errors ----------
+
+    @Test
+    public void getResponse_taskNumberOnAnEmptyList_saysTheListIsEmpty() {
+        Response response = newSel().getResponse("mark 1");
+
+        assertTrue(response.isError());
+        assertTrue(response.text().contains("empty"), response.text());
+    }
+
+    @Test
+    public void startupWarning_oneUnusableLine_isWordedForASingleLine() throws IOException {
+        Files.write(saveFile, List.of("T | 0 | read book", "Z | 0 | mystery"));
+
+        String warning = newSel().getStartupWarning().orElseThrow();
+
+        assertTrue(warning.contains("line 2"), warning);
+        assertFalse(warning.contains("lines of my save file"), warning);
+    }
+
+    @Test
+    public void startupWarning_severalUnusableLines_listsEachOne() throws IOException {
+        Files.write(saveFile, List.of("Z | 0 | mystery", "T | 0", "T | 0 | read book"));
+
+        String warning = newSel().getStartupWarning().orElseThrow();
+
+        assertTrue(warning.contains("2 lines"), warning);
+        assertTrue(warning.contains("line 1"), warning);
+        assertTrue(warning.contains("line 2"), warning);
+    }
 }
