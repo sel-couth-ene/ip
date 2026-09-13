@@ -1,12 +1,16 @@
 package sel.storage;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import sel.exception.SelException;
@@ -14,115 +18,225 @@ import sel.task.Deadline;
 import sel.task.Event;
 import sel.task.Task;
 import sel.task.ToDo;
-import sel.ui.Ui;
 
 /**
  * Deals with loading tasks from the save file and saving tasks back to it.
+ *
+ * <p>Problems with the file itself are reported two different ways, because
+ * they need different treatment:
+ * <ul>
+ *   <li>Problems that stop the whole operation (the file cannot be read,
+ *       created or written) are thrown as a {@link SelException} so the
+ *       caller can show them to the user.</li>
+ *   <li>Problems with individual lines (unreadable or duplicated data) are
+ *       collected in {@link #getLoadWarnings()}. The rest of the file still
+ *       loads, and the caller can mention what was skipped.</li>
+ * </ul>
  */
 public class Storage {
     private final Path filePath;
-    private final Ui ui;
+
+    /** Notes about lines skipped by the most recent {@link #load()}. */
+    private final List<String> loadWarnings = new ArrayList<>();
 
     /**
-     * Creates a Storage that reads from and writes to the given file path,
-     * using a default {@link Ui} for warning messages.
+     * Creates a Storage that reads from and writes to the given file path.
      *
      * @param filePath the path to the save file.
      */
     public Storage(String filePath) {
-        this(filePath, new Ui());
-    }
-
-    /**
-     * Creates a Storage that reads from and writes to the given file path,
-     * reporting warnings through the given {@link Ui}.
-     *
-     * @param filePath the path to the save file.
-     * @param ui the Ui to use for warning messages.
-     */
-    public Storage(String filePath, Ui ui) {
         this.filePath = Paths.get(filePath);
-        this.ui = ui;
     }
 
     /**
      * Loads tasks from the save file, creating it (and its parent
-     * directory) if it does not already exist. Lines that cannot be
-     * parsed are skipped with a warning rather than aborting the load.
+     * directory) if it does not already exist. Lines that cannot be parsed,
+     * and lines that repeat a task already loaded, are skipped and recorded
+     * in {@link #getLoadWarnings()} rather than aborting the load.
      *
      * @return the list of tasks read from the save file.
-     * @throws SelException if the file cannot be read or created.
+     * @throws SelException if the file cannot be read or created at all.
      */
     public List<Task> load() throws SelException {
         List<Task> tasks = new ArrayList<>();
+        loadWarnings.clear();
+
+        if (Files.isDirectory(filePath)) {
+            throw new SelException("Bro, my save file path (" + filePath
+                    + ") is a folder, not a file. Move it out of the way and restart me.");
+        }
 
         try {
-            Path parent = filePath.getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
-
-            if (!Files.exists(filePath)) {
-                Files.createFile(filePath);
-                return tasks;
-            }
-
+            createFileIfMissing();
             List<String> lines = Files.readAllLines(filePath);
 
             for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i).trim();
-
-                if (line.isEmpty()) {
-                    continue;
-                }
-
-                try {
-                    tasks.add(parseTask(line));
-                } catch (IllegalArgumentException e) {
-                    ui.showCorruptedLineWarning(i + 1);
-                }
+                readLineInto(tasks, lines.get(i).trim(), i + 1);
             }
+        } catch (AccessDeniedException e) {
+            throw new SelException("Bro, I'm not allowed to open " + filePath
+                    + ". Check who owns the file and whether it's read-only.");
         } catch (IOException e) {
-            throw new SelException("Failed to load tasks from " + filePath + ".");
+            throw new SelException("Bro, I couldn't read my save file (" + filePath + "): "
+                    + e.getMessage());
         }
 
         return tasks;
     }
 
     /**
-     * Saves the given tasks to the save file, overwriting its previous
+     * Returns notes about any lines the most recent {@link #load()} had to
+     * skip. Empty if the whole file loaded cleanly.
+     *
+     * @return an unmodifiable list of warning messages.
+     */
+    public List<String> getLoadWarnings() {
+        return Collections.unmodifiableList(loadWarnings);
+    }
+
+    /**
+     * Saves the given tasks to the save file, replacing its previous
      * contents entirely.
      *
+     * <p>The tasks are written to a temporary file which is then moved into
+     * place. If the write fails part way through (out of disk space, say),
+     * the previous save file is left untouched instead of being left
+     * half-written.
+     *
      * @param tasks the tasks to save.
+     * @throws SelException if the tasks could not be written to disk.
      */
-    public void save(List<Task> tasks) {
+    public void save(List<Task> tasks) throws SelException {
         List<String> lines = new ArrayList<>();
-
         for (Task currentTask : tasks) {
-            String status = currentTask.isDone() ? "1" : "0";
-
-            if (currentTask instanceof ToDo) {
-                lines.add("T | " + status + " | " + currentTask.getDescription());
-            } else if (currentTask instanceof Deadline) {
-                Deadline deadline = (Deadline) currentTask;
-                lines.add("D | " + status + " | " + deadline.getDescription()
-                    + " | " + deadline.getDdl());
-            } else if (currentTask instanceof Event) {
-                Event event = (Event) currentTask;
-                lines.add("E | " + status + " | " + event.getDescription()
-                    + " | " + event.getFrom() + " | " + event.getTo());
-            }
+            lines.add(toSaveFormat(currentTask));
         }
+
+        Path directory = filePath.toAbsolutePath().getParent();
+        Path temporaryFile = null;
 
         try {
-            Path parent = filePath.getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
-            Files.write(filePath, lines);
+            Files.createDirectories(directory);
+            temporaryFile = Files.createTempFile(directory, "sel", ".tmp");
+            Files.write(temporaryFile, lines);
+            moveIntoPlace(temporaryFile, filePath);
+            temporaryFile = null;
+        } catch (AccessDeniedException e) {
+            throw new SelException("Bro, I'm not allowed to write to " + filePath
+                    + ". Your list is fine in this window, but I can't save it - "
+                    + "check the file permissions.");
         } catch (IOException e) {
-            ui.showSavingError();
+            throw new SelException("Bro, I couldn't save your tasks to " + filePath + ": "
+                    + e.getMessage() + " Your list is fine in this window, but it may not "
+                    + "survive a restart.");
+        } finally {
+            deleteQuietly(temporaryFile);
         }
+    }
+
+    /**
+     * Creates the save file, and any missing directories above it, if it is
+     * not already there.
+     *
+     * @throws IOException if the file or its directories cannot be created.
+     */
+    private void createFileIfMissing() throws IOException {
+        Path parent = filePath.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+        if (!Files.exists(filePath)) {
+            Files.createFile(filePath);
+        }
+    }
+
+    /**
+     * Parses one line of the save file and adds the task it describes,
+     * recording a warning instead if the line is unusable or duplicated.
+     *
+     * @param tasks the tasks loaded so far; the new task is added to this.
+     * @param line the trimmed contents of the line.
+     * @param lineNumber the 1-based line number, used in warnings.
+     */
+    private void readLineInto(List<Task> tasks, String line, int lineNumber) {
+        if (line.isEmpty()) {
+            return;
+        }
+
+        Task loadedTask;
+        try {
+            loadedTask = parseTask(line);
+        } catch (IllegalArgumentException e) {
+            loadWarnings.add("line " + lineNumber + ": " + e.getMessage());
+            return;
+        }
+
+        boolean isDuplicate = tasks.stream().anyMatch(task -> task.hasSameDetailsAs(loadedTask));
+        if (isDuplicate) {
+            loadWarnings.add("line " + lineNumber + ": repeats a task already on the list");
+            return;
+        }
+
+        tasks.add(loadedTask);
+    }
+
+    /**
+     * Moves the freshly written temporary file over the real save file,
+     * atomically where the filesystem supports it.
+     *
+     * @param source the temporary file holding the new contents.
+     * @param target the save file to replace.
+     * @throws IOException if the file cannot be moved.
+     */
+    private void moveIntoPlace(Path source, Path target) throws IOException {
+        try {
+            Files.move(source, target,
+                    StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            // Some filesystems cannot move atomically; a plain replace is
+            // the best that can be done there.
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    /**
+     * Deletes a leftover temporary file, ignoring any failure. Called from
+     * a {@code finally} block, where throwing would hide the real error.
+     *
+     * @param file the file to delete; may be {@code null}.
+     */
+    private void deleteQuietly(Path file) {
+        if (file == null) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            // Nothing useful to do: the save has already failed, and a
+            // stray .tmp file is harmless.
+        }
+    }
+
+    /**
+     * Renders a task as the single save-file line that represents it.
+     *
+     * @param task the task to render.
+     * @return the line to write to the save file.
+     */
+    private String toSaveFormat(Task task) {
+        String status = task.isDone() ? "1" : "0";
+
+        if (task instanceof Deadline) {
+            Deadline deadline = (Deadline) task;
+            return "D | " + status + " | " + deadline.getDescription()
+                    + " | " + deadline.getDdl();
+        }
+        if (task instanceof Event) {
+            Event event = (Event) task;
+            return "E | " + status + " | " + event.getDescription()
+                    + " | " + event.getFrom() + " | " + event.getTo();
+        }
+        return "T | " + status + " | " + task.getDescription();
     }
 
     /**
@@ -138,60 +252,118 @@ public class Storage {
         String[] parts = line.split("\\s*\\|\\s*", -1);
 
         if (parts.length < 3) {
-            throw new IllegalArgumentException("Not enough fields");
+            throw new IllegalArgumentException("not enough fields");
         }
 
         String type = parts[0];
         String status = parts[1];
-        String description = parts[2];
 
         if (!status.equals("0") && !status.equals("1")) {
-            throw new IllegalArgumentException("Invalid status");
+            throw new IllegalArgumentException("'" + status + "' is not a done/not-done flag");
         }
 
-        if (description.isEmpty()) {
-            throw new IllegalArgumentException("Missing description");
-        }
-
-        Task loadedTask;
-
-        switch (type) {
-            case "T":
-                if (parts.length != 3) {
-                    throw new IllegalArgumentException("Invalid todo format");
-                }
-                loadedTask = new ToDo(description);
-                break;
-
-            case "D":
-                if (parts.length != 4 || parts[3].isEmpty()) {
-                    throw new IllegalArgumentException("Invalid deadline format");
-                }
-                loadedTask = new Deadline(description, parseStoredDateTime(parts[3]));
-                break;
-
-            case "E":
-                if (parts.length == 5 && !parts[3].isEmpty() && !parts[4].isEmpty()) {
-                    loadedTask = new Event(description,
-                            parseStoredDateTime(parts[3]), parseStoredDateTime(parts[4]));
-                } else if (parts.length == 4 && !parts[3].isEmpty()) {
-                    String[] range = splitLegacyEventRange(parts[3]);
-                    loadedTask = new Event(description,
-                            parseStoredDateTime(range[0]), parseStoredDateTime(range[1]));
-                } else {
-                    throw new IllegalArgumentException("Invalid event format");
-                }
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unknown task type");
-        }
+        Task loadedTask = buildTask(type, parts);
 
         if (status.equals("1")) {
             loadedTask.mark();
         }
-
         return loadedTask;
+    }
+
+    /**
+     * Builds the task described by the fields of a save-file line.
+     *
+     * <p>Descriptions are rejoined from the middle fields rather than taken
+     * from a fixed position, so a description that somehow contains the
+     * field separator (from an older version, or a hand-edited file) is
+     * still read back in one piece instead of being dropped.
+     *
+     * @param type the task-type marker, e.g. {@code "T"}.
+     * @param parts every field on the line, separators removed.
+     * @return the task the line describes.
+     * @throws IllegalArgumentException if the fields do not fit the type.
+     */
+    private Task buildTask(String type, String[] parts) {
+        try {
+            switch (type) {
+                case "T":
+                    return new ToDo(requireDescription(rejoin(parts, 2, parts.length)));
+
+                case "D":
+                    if (parts.length < 4 || parts[parts.length - 1].isEmpty()) {
+                        throw new IllegalArgumentException("a deadline needs a due date");
+                    }
+                    return new Deadline(
+                            requireDescription(rejoin(parts, 2, parts.length - 1)),
+                            parseStoredDateTime(parts[parts.length - 1]));
+
+                case "E":
+                    return buildEvent(parts);
+
+                default:
+                    throw new IllegalArgumentException("'" + type + "' is not a task type I know");
+            }
+        } catch (SelException e) {
+            // Event rejects impossible time ranges. From the save file's
+            // point of view that is just another unusable line.
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    /**
+     * Builds an {@link Event} from the fields of a save-file line, handling
+     * both the current five-field format and the older format that packed
+     * the whole time range into one field.
+     *
+     * @param parts every field on the line, separators removed.
+     * @return the event the line describes.
+     * @throws IllegalArgumentException if the fields are unusable.
+     * @throws SelException if the stored time range is impossible.
+     */
+    private Event buildEvent(String[] parts) throws SelException {
+        if (parts.length == 4 && !parts[3].isEmpty()) {
+            String[] range = splitLegacyEventRange(parts[3]);
+            return new Event(requireDescription(parts[2]),
+                    parseStoredDateTime(range[0]), parseStoredDateTime(range[1]));
+        }
+
+        if (parts.length < 5
+                || parts[parts.length - 1].isEmpty()
+                || parts[parts.length - 2].isEmpty()) {
+            throw new IllegalArgumentException("an event needs a start and an end date");
+        }
+
+        return new Event(
+                requireDescription(rejoin(parts, 2, parts.length - 2)),
+                parseStoredDateTime(parts[parts.length - 2]),
+                parseStoredDateTime(parts[parts.length - 1]));
+    }
+
+    /**
+     * Joins the given range of fields back together with the separator that
+     * split them.
+     *
+     * @param parts every field on the line.
+     * @param fromIndex first field to include.
+     * @param toIndex one past the last field to include.
+     * @return the rejoined text.
+     */
+    private String rejoin(String[] parts, int fromIndex, int toIndex) {
+        return String.join(" | ", List.of(parts).subList(fromIndex, toIndex));
+    }
+
+    /**
+     * Checks that a description read from the save file is not blank.
+     *
+     * @param description the description read from the file.
+     * @return the same description.
+     * @throws IllegalArgumentException if it is empty or only whitespace.
+     */
+    private String requireDescription(String description) {
+        if (description.isBlank()) {
+            throw new IllegalArgumentException("the description is missing");
+        }
+        return description;
     }
 
     /**
@@ -222,7 +394,7 @@ public class Storage {
             }
         }
 
-        throw new IllegalArgumentException("Invalid event range");
+        throw new IllegalArgumentException("'" + timeRange + "' is not a time range");
     }
 
     /**
@@ -238,7 +410,7 @@ public class Storage {
         try {
             return LocalDateTime.parse(input.trim());
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Invalid stored date/time: " + input);
+            throw new IllegalArgumentException("'" + input + "' is not a stored date/time");
         }
     }
 }

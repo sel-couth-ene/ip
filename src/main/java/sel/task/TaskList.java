@@ -3,6 +3,7 @@ package sel.task;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents the list of tasks currently tracked by the application,
@@ -57,6 +58,20 @@ public class TaskList {
     public Task get(int index) {
         assert isValidIndex(index) : "Task index must be valid!";
         return tasks.get(index);
+    }
+
+    /**
+     * Finds an existing task that describes the same thing as the given
+     * one, so that a duplicate can be reported instead of being added.
+     *
+     * @param candidate the task about to be added.
+     * @return the first matching task, or an empty {@code Optional} if the
+     *     candidate is not a duplicate.
+     */
+    public Optional<Task> findDuplicateOf(Task candidate) {
+        return tasks.stream()
+                .filter(task -> task.hasSameDetailsAs(candidate))
+                .findFirst();
     }
 
     /**

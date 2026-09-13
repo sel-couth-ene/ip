@@ -1,6 +1,8 @@
 package sel.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 
@@ -42,5 +44,17 @@ public class DeadlineTest {
         LocalDateTime ddl = LocalDateTime.of(2019, 12, 2, 0, 0);
         Deadline deadline = new Deadline("renew passport", ddl);
         assertEquals("[D][ ] renew passport(by:Dec 2 2019, 12:00AM)", deadline.toString());
+    }
+
+    @Test
+    public void hasSameDetailsAs_needsSameDescriptionAndDueDate() {
+        LocalDateTime due = LocalDateTime.of(2019, 12, 2, 18, 0);
+        LocalDateTime otherDue = LocalDateTime.of(2019, 12, 3, 18, 0);
+        Deadline deadline = new Deadline("return book", due);
+
+        assertTrue(deadline.hasSameDetailsAs(new Deadline("return book", due)));
+        assertTrue(deadline.hasSameDetailsAs(new Deadline("RETURN BOOK", due)));
+        assertFalse(deadline.hasSameDetailsAs(new Deadline("return book", otherDue)));
+        assertFalse(deadline.hasSameDetailsAs(new ToDo("return book")));
     }
 }
